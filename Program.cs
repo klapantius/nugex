@@ -16,19 +16,22 @@ namespace nugex
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
 
+            var feedUrl = "https://apollo.healthcare.siemens.com/tfs/IKM.TPC.Projects/_packaging/syngo-BuildTools/nuget/v3/index.json";
+            var packageName = "Siemens.TFS.Build.Core";
+            
             SourceCacheContext cache = new SourceCacheContext();
-            SourceRepository repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+            SourceRepository repository = Repository.Factory.GetCoreV3(feedUrl);
             FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>();
 
             IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
-                "Newtonsoft.Json",
+                packageName,
                 cache,
                 logger,
                 cancellationToken);
 
             foreach (NuGetVersion version in versions)
             {
-                Console.WriteLine($"Found version {version}");
+                Console.WriteLine($"{version.ToFullString()}");
             }
         }
     }
