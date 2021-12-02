@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -17,22 +19,18 @@ namespace nugex
             CancellationToken cancellationToken = CancellationToken.None;
 
             var feedUrl = "https://apollo.healthcare.siemens.com/tfs/IKM.TPC.Projects/_packaging/syngo-BuildTools/nuget/v3/index.json";
-            var packageName = "Siemens.TFS.Build.Core";
-            
+
             SourceCacheContext cache = new SourceCacheContext();
             SourceRepository repository = Repository.Factory.GetCoreV3(feedUrl);
-            FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>();
 
-            IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
-                packageName,
-                cache,
-                logger,
-                cancellationToken);
+            var searcher = await repository.GetResourceAsync<PackageSearchResource>();
+            var packages = await searcher.SearchAsync("microsoft", new SearchFilter(false), 0, 999, logger, cancellationToken);
+            var releaseVersionRule = new Regex(@"^\d+\.\d+.\d+$");
 
-            foreach (NuGetVersion version in versions)
+            packages.ToList().ForEach(p =>
             {
-                Console.WriteLine($"{version.ToFullString()}");
-            }
+                Console.WriteLine($"{p.Identity.Id} - {p.Identity.Version}");
+            });
         }
     }
 }
