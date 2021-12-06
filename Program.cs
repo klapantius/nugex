@@ -19,25 +19,35 @@ namespace nugex
 
             var searchTerm = Param("name");
             if (string.IsNullOrWhiteSpace(searchTerm)) throw new Exception($"please use the --name parameter to specify a search term");
+            var showAllFeeds = Switch("showAllFeeds");
 
             var knownFeeds = new ConfigReader().ReadSources();
             var feedCrowlers = knownFeeds.Select(feed => new FeedCrawler(feed.Item1, feed.Item2)).ToList();
             Task.WaitAll(feedCrowlers.Select(fc => fc.Search(searchTerm)).ToArray());
             feedCrowlers.ToList().ForEach(crawler =>
             {
+                if (!crawler.Results.Any() && !showAllFeeds) return;
                 Console.WriteLine($"{Environment.NewLine}---= {crawler.FeedName} =-------------");
                 crawler.Results.ToList().ForEach(item => Console.WriteLine($"{item.Identity.Id} - {item.Identity.Version.ToString()}"));
             });
         }
 
-        static string Param(string name)
+        static int FindOption(string name)
         {
             var arg = Args
                 .LastOrDefault(a => a.Trim(new[] { '/', '-' }).ToLowerInvariant().Equals(name, StringComparison.InvariantCultureIgnoreCase));
-            if (arg == default) return default;
-            var idx = Args.IndexOf(arg) + 1;
-            if (idx >= Args.Count) return default;
-            return Args[idx];
+            if (arg == default) return -1;
+            return Args.IndexOf(arg);
         }
+
+        static string Param(string name)
+        {
+            var valueIdx = FindOption(name) + 1;
+            if (valueIdx == 0 || valueIdx >= Args.Count) return default;
+            return Args[valueIdx];
+        }
+        
+        static bool Switch(string name) => FindOption(name) >= 0;
+        
     }
 }
