@@ -20,7 +20,7 @@ namespace nugex
             FeedUrl = feedUrl;
         }
 
-        public async Task Search(string searchTerm)
+        public async Task Search(string searchTerm, bool includePreRelease = false)
         {
             SourceCacheContext cache = new SourceCacheContext();
             SourceRepository repository = Repository.Factory.GetCoreV3(FeedUrl);
@@ -28,7 +28,7 @@ namespace nugex
             Results.Clear();
             var r = (await searcher.SearchAsync(
                 searchTerm,
-                new SearchFilter(includePrerelease: false),
+                new SearchFilter(includePrerelease: includePreRelease),
                 0, 999,
                 NullLogger.Instance, CancellationToken.None));
             r.ToList().ForEach(i => Results.Add(i));

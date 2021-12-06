@@ -20,10 +20,11 @@ namespace nugex
             var searchTerm = Param("name");
             if (string.IsNullOrWhiteSpace(searchTerm)) throw new Exception($"please use the --name parameter to specify a search term");
             var showAllFeeds = Switch("show-all-feeds");
+            var includePreRelease = Switch("include-pre-release");
 
             var knownFeeds = new ConfigReader().ReadSources();
             var feedCrowlers = knownFeeds.Select(feed => new FeedCrawler(feed.Item1, feed.Item2)).ToList();
-            Task.WaitAll(feedCrowlers.Select(fc => fc.Search(searchTerm)).ToArray());
+            Task.WaitAll(feedCrowlers.Select(fc => fc.Search(searchTerm, includePreRelease)).ToArray());
             feedCrowlers.ToList().ForEach(crawler =>
             {
                 if (!crawler.Results.Any() && !showAllFeeds) return;
