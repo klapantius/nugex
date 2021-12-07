@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Threading;
@@ -5,6 +6,7 @@ using System.Threading.Tasks;
 using NuGet.Common;
 using nugex.cmdline;
 using nugex.utils;
+using NuGet.Protocol.Core.Types;
 
 namespace nugex
 {
@@ -27,13 +29,16 @@ namespace nugex
 
             var knownFeeds = new ConfigReader().ReadSources();
             var feedCrawlers = knownFeeds.Select(feed => new FeedWorker(feed.Item1, feed.Item2)).ToList();
-            Task.WaitAll(feedCrawlers.Select(fc => fc.Search(searchTerm, includePreRelease)).ToArray());
-            feedCrawlers.ToList().ForEach(crawler =>
+            var findings = new Dictionary<string, HashSet<IPackageSearchMetadata>>();
+            Task.WaitAll(feedCrawlers.Select(async (fc) => findings[fc.FeedName] = await fc.Search(searchTerm, includePreRelease)).ToArray());
+            foreach (var finding in findings)
             {
-                if (!crawler.Results.Any() && !showAllFeeds) return;
-                Console.WriteLine($"{Environment.NewLine}---= {crawler.FeedName} =-------------");
-                crawler.Results.ToList().ForEach(item => Console.WriteLine($"{item.Identity.Id} - {item.Identity.Version.ToString()}"));
-            });
+                var feedName = finding.Key;
+                var packages = finding.Value;
+                if (!packages.Any() && !showAllFeeds) continue;
+                Console.WriteLine($"{Environment.NewLine}---= {feedName} =-------------");
+                packages.ToList().ForEach(item => Console.WriteLine($"{item.Identity.Id} - {item.Identity.Version.ToString()}"));
+            }
         }
 
         private static void SearchVersions()
@@ -53,21 +58,28 @@ namespace nugex
 
             var knownFeeds = new ConfigReader().ReadSources();
             var feedCrawlers = knownFeeds.Select(feed => new FeedWorker(feed.Item1, feed.Item2)).ToList();
-            Task.WaitAll(feedCrawlers.Select(fc => fc.Search(packageName, includePreRelease: true)).ToArray());
-            feedCrawlers.ToList().ForEach(crawler =>
+            var findings = new Dictionary<string, Tuple<FeedWorker, HashSet<IPackageSearchMetadata>>>();
+            Task.WaitAll(feedCrawlers.Select(async (fc) =>
             {
-                if (!crawler.Results.Any()) return;
+                findings[fc.FeedName] = new Tuple<FeedWorker, HashSet<IPackageSearchMetadata>>(
+                    fc, await fc.Search(packageName, includePreRelease: true));
+            }).ToArray());
+            foreach (var finding in findings)
+            {
+                var feedName = finding.Key;
+                var worker = finding.Value.Item1;
+                var packages = finding.Value.Item2;
                 var first = true;
-                foreach (var package in crawler.Results)
+                foreach (var package in packages)
                 {
-                    var versions = crawler.FindVersions(package, versionSpec).Result;
-                    if (first) Console.WriteLine($"{Environment.NewLine}---= {crawler.FeedName} =-------------");
+                    var versions = worker.FindVersions(package, versionSpec).Result;
+                    if (first) Console.WriteLine($"{Environment.NewLine}---= {worker.FeedName} =-------------");
                     if (!versions.Any()) Console.WriteLine($"{package.Identity.Id} - package exists, but no matching version could be identified");
                     else Console.WriteLine($"{package.Identity.Id}:");
                     versions.ToList().ForEach(vi => Console.WriteLine($"  {vi.Version.ToString()}"));
                     first = false;
                 }
-            });
+            };
         }
 
     }

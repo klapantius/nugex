@@ -13,7 +13,6 @@ namespace nugex.utils
     {
         public string FeedName { get; }
         public string FeedUrl { get; }
-        public HashSet<IPackageSearchMetadata> Results { get; private set; } = new HashSet<IPackageSearchMetadata>();
 
         public FeedWorker(string feedName, string feedUrl)
         {
@@ -21,18 +20,17 @@ namespace nugex.utils
             FeedUrl = feedUrl;
         }
 
-        public async Task Search(string searchTerm, bool includePreRelease = false)
+        public async Task<HashSet<IPackageSearchMetadata>> Search(string searchTerm, bool includePreRelease = false)
         {
             SourceCacheContext cache = new SourceCacheContext();
             SourceRepository repository = Repository.Factory.GetCoreV3(FeedUrl);
             var searcher = await repository.GetResourceAsync<PackageSearchResource>();
-            Results.Clear();
             var r = (await searcher.SearchAsync(
                 searchTerm,
                 new SearchFilter(includePrerelease: includePreRelease),
                 0, 999,
                 NullLogger.Instance, CancellationToken.None));
-            r.ToList().ForEach(i => Results.Add(i));
+            return new HashSet<IPackageSearchMetadata>(r);
         }
 
         public async Task<IEnumerable<VersionInfo>> FindVersions(IPackageSearchMetadata package, string versionSpec) {
