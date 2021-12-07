@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -32,6 +33,13 @@ namespace nugex.utils
                 0, 999,
                 NullLogger.Instance, CancellationToken.None));
             r.ToList().ForEach(i => Results.Add(i));
+        }
+
+        public async Task<IEnumerable<VersionInfo>> FindVersions(IPackageSearchMetadata package, string versionSpec) {
+            var versions = await package.GetVersionsAsync();
+            if (!versions.Any()) return new VersionInfo[0];
+            var result = versions.Where(v => Regex.IsMatch(v.Version.ToString(), versionSpec, RegexOptions.IgnoreCase));
+            return result;
         }
     }
 }

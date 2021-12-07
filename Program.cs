@@ -10,7 +10,10 @@ namespace nugex
                 new Command("search", "search for package(s) on known feeds (from nuget.config)", () => Search(),
                         new Parameter(_SEARCH_TERM_, "search term", mandatory: true),
                         new Switch(_ALL_FEEDS_, "...even those without matching packages"),
-                        new Switch(_PREREL_, "pre-release version will be shown if newer than latest stable"))
+                        new Switch(_PREREL_, "pre-release version will be shown if newer than latest stable")),
+                new Command("search-version", "search for specific version of packages", () => SearchVersions(),
+                        new Parameter(_SEARCH_TERM_, "search term", mandatory: true),
+                        new Parameter(_VSPEC_, "version number (regex)", mandatory: true)),
             });
 
             CmdLine.Parser.Parse(args);
@@ -22,6 +25,7 @@ namespace nugex
         public static readonly string _PREREL_ = "include-pre-release";
         public static readonly string _SEARCH_TERM_ = "name";
         public static readonly string _ALL_FEEDS_ = "show-all-feeds";
+        public static readonly string _VSPEC_ = "version";
 
     }
 }
