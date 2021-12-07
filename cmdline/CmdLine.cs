@@ -2,15 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace nugex
+namespace nugex.cmdline
 {
-    public static class CmdLine
+    public static partial class CmdLine
     {
+
         private static List<string> Args;
+        private static string CommandRef;
+        private static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
 
         public static void Parse(string[] args)
         {
-            Args = new List<string>(args);
+            CommandRef = args[0].ToLowerInvariant();
+            Args = new List<string>(args).Skip(1).ToList();
         }
 
         static int FindOption(string name)
@@ -29,6 +33,16 @@ namespace nugex
         }
 
         public static bool GetSwitch(string name) => FindOption(name) >= 0;
+
+        public static void InitCommands(IEnumerable<Command> commands)
+        {
+            commands.ToList().ForEach(c => Commands[c.Name.ToLowerInvariant()] = c);
+        }
+
+        public static void ExecuteCommand() {
+            var cmd = Commands[CommandRef];
+            cmd.Execute();
+        }
 
     }
 }
