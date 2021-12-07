@@ -26,7 +26,7 @@ namespace nugex
             CancellationToken cancellationToken = CancellationToken.None;
 
             var knownFeeds = new ConfigReader().ReadSources();
-            var feedCrawlers = knownFeeds.Select(feed => new FeedCrawler(feed.Item1, feed.Item2)).ToList();
+            var feedCrawlers = knownFeeds.Select(feed => new FeedWorker(feed.Item1, feed.Item2)).ToList();
             Task.WaitAll(feedCrawlers.Select(fc => fc.Search(searchTerm, includePreRelease)).ToArray());
             feedCrawlers.ToList().ForEach(crawler =>
             {
@@ -52,7 +52,7 @@ namespace nugex
             CancellationToken cancellationToken = CancellationToken.None;
 
             var knownFeeds = new ConfigReader().ReadSources();
-            var feedCrawlers = knownFeeds.Select(feed => new FeedCrawler(feed.Item1, feed.Item2)).ToList();
+            var feedCrawlers = knownFeeds.Select(feed => new FeedWorker(feed.Item1, feed.Item2)).ToList();
             Task.WaitAll(feedCrawlers.Select(fc => fc.Search(packageName, includePreRelease: true)).ToArray());
             feedCrawlers.ToList().ForEach(crawler =>
             {

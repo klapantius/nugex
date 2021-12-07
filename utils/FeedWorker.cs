@@ -9,13 +9,13 @@ using NuGet.Protocol.Core.Types;
 
 namespace nugex.utils
 {
-    class FeedCrawler
+    class FeedWorker
     {
         public string FeedName { get; }
         public string FeedUrl { get; }
         public HashSet<IPackageSearchMetadata> Results { get; private set; } = new HashSet<IPackageSearchMetadata>();
 
-        public FeedCrawler(string feedName, string feedUrl)
+        public FeedWorker(string feedName, string feedUrl)
         {
             FeedName = feedName;
             FeedUrl = feedUrl;
