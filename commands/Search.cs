@@ -11,13 +11,17 @@ namespace nugex
     {
         private static void Search()
         {
-            ILogger logger = NullLogger.Instance;
-            CancellationToken cancellationToken = CancellationToken.None;
-
             var searchTerm = CmdLine.Parser.GetParam("name");
             if (string.IsNullOrWhiteSpace(searchTerm)) throw new Exception($"please use the --name parameter to specify a search term");
             var showAllFeeds = CmdLine.Parser.GetSwitch("show-all-feeds");
             var includePreRelease = CmdLine.Parser.GetSwitch("include-pre-release");
+
+            Search(searchTerm, showAllFeeds, includePreRelease);
+        }
+
+        private static void Search(string searchTerm, bool showAllFeeds, bool includePreRelease) {
+            ILogger logger = NullLogger.Instance;
+            CancellationToken cancellationToken = CancellationToken.None;
 
             var knownFeeds = new ConfigReader().ReadSources();
             var feedCrawlers = knownFeeds.Select(feed => new FeedCrawler(feed.Item1, feed.Item2)).ToList();
