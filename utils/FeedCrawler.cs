@@ -6,7 +6,7 @@ using NuGet.Common;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 
-namespace nugex
+namespace nugex.utils
 {
     class FeedCrawler
     {

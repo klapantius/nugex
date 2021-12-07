@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace nugex
+namespace nugex.utils
 {
     class ConfigReader
     {

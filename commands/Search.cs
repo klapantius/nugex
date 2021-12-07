@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
 using nugex.cmdline;
+using nugex.utils;
 
 namespace nugex
 {
