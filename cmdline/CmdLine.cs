@@ -4,20 +4,37 @@ using System.Linq;
 
 namespace nugex.cmdline
 {
-    public static partial class CmdLine
+    public interface ICmdLine
     {
+        string GetParam(string name);
+        bool GetSwitch(string name);
+        void InitCommands(IEnumerable<Command> commands);
+        void Parse(string[] args);
+        void ExecuteCommand();
+    }
 
-        private static List<string> Args;
-        private static string CommandRef;
-        private static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
+    public class CmdLine : ICmdLine
+    {
+        private static ICmdLine _parser = null;
+        public static ICmdLine Parser {
+            get {
+                if (_parser == null) _parser = new CmdLine();
+                return _parser;
+            }
+            internal set { _parser = value; }
+        }
 
-        public static void Parse(string[] args)
+        private List<string> Args;
+        private string CommandRef;
+        private Dictionary<string, Command> Commands = new Dictionary<string, Command>();
+
+        public void Parse(string[] args)
         {
             CommandRef = args[0].ToLowerInvariant();
             Args = new List<string>(args).Skip(1).ToList();
         }
 
-        static int FindOption(string name)
+        int FindOption(string name)
         {
             var arg = Args
                 .LastOrDefault(a => a.Trim(new[] { '/', '-' }).ToLowerInvariant().Equals(name, StringComparison.InvariantCultureIgnoreCase));
@@ -25,21 +42,22 @@ namespace nugex.cmdline
             return Args.IndexOf(arg);
         }
 
-        public static string GetParam(string name)
+        public string GetParam(string name)
         {
             var valueIdx = FindOption(name) + 1;
             if (valueIdx == 0 || valueIdx >= Args.Count) return default;
             return Args[valueIdx];
         }
 
-        public static bool GetSwitch(string name) => FindOption(name) >= 0;
+        public bool GetSwitch(string name) => FindOption(name) >= 0;
 
-        public static void InitCommands(IEnumerable<Command> commands)
+        public void InitCommands(IEnumerable<Command> commands)
         {
             commands.ToList().ForEach(c => Commands[c.Name.ToLowerInvariant()] = c);
         }
 
-        public static void ExecuteCommand() {
+        public void ExecuteCommand()
+        {
             var cmd = Commands[CommandRef];
             cmd.Execute();
         }

@@ -5,14 +5,14 @@ namespace nugex
     {
         static void Main(string[] args)
         {
-            CmdLine.InitCommands(new[]
+            CmdLine.Parser.InitCommands(new[]
             {
                 new Command("search", "search for package(s) on known feeds (from nuget.config)", () => Search())
             });
 
-            CmdLine.Parse(args);
+            CmdLine.Parser.Parse(args);
 
-            CmdLine.ExecuteCommand();
+            CmdLine.Parser.ExecuteCommand();
         }
     }
 }

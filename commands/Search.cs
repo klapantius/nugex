@@ -14,10 +14,10 @@ namespace nugex
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
 
-            var searchTerm = CmdLine.GetParam("name");
+            var searchTerm = CmdLine.Parser.GetParam("name");
             if (string.IsNullOrWhiteSpace(searchTerm)) throw new Exception($"please use the --name parameter to specify a search term");
-            var showAllFeeds = CmdLine.GetSwitch("show-all-feeds");
-            var includePreRelease = CmdLine.GetSwitch("include-pre-release");
+            var showAllFeeds = CmdLine.Parser.GetSwitch("show-all-feeds");
+            var includePreRelease = CmdLine.Parser.GetSwitch("include-pre-release");
 
             var knownFeeds = new ConfigReader().ReadSources();
             var feedCrawlers = knownFeeds.Select(feed => new FeedCrawler(feed.Item1, feed.Item2)).ToList();
