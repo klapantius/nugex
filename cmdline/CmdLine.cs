@@ -51,9 +51,22 @@ namespace nugex.cmdline
 
         public bool GetSwitch(string name) => FindOption(name) >= 0;
 
+        private void Help() {
+            foreach (var cmd in Commands)
+            {
+                Console.WriteLine($"{cmd.Key,-27}{cmd.Value.Description}");
+                foreach (var opt in cmd.Value.Options)
+                {
+                    var mndStr = (opt is Parameter) && (opt as Parameter).IsMandatory? " - mandatory":"";
+                    Console.WriteLine($"  --{opt.Name,-23}{opt.Description}{mndStr}");
+                }
+            }
+        }
+
         public void InitCommands(IEnumerable<Command> commands)
         {
             commands.ToList().ForEach(c => Commands[c.Name.ToLowerInvariant()] = c);
+            Commands["help"] = new Command("help", "this text", () => Help());
         }
 
         public void ExecuteCommand()
