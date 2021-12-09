@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NuGet.Common;
 using nugex.cmdline;
 using nugex.utils;
-using NuGet.Protocol.Core.Types;
 
 namespace nugex
 {
@@ -29,7 +28,7 @@ namespace nugex
 
             var knownFeeds = new ConfigReader().ReadSources();
             var feedCrawlers = knownFeeds.Select(feed => new FeedWorker(feed.Item1, feed.Item2)).ToList();
-            var findings = new Dictionary<string, HashSet<FeedWorker.SearchResult>>();
+            var findings = new Dictionary<string, IEnumerable<FeedWorker.SearchResult>>();
             Task.WaitAll(feedCrawlers.Select(async (fc) => findings[fc.FeedName] = await fc.Search(searchTerm, null, includePreRelease)).ToArray());
             foreach (var finding in findings)
             {
@@ -58,24 +57,23 @@ namespace nugex
 
             var knownFeeds = new ConfigReader().ReadSources();
             var feedCrawlers = knownFeeds.Select(feed => new FeedWorker(feed.Item1, feed.Item2)).ToList();
-            var findings = new Dictionary<string, HashSet<FeedWorker.SearchResult>>();
+            var findings = new Dictionary<string, IEnumerable<FeedWorker.SearchResult>>();
             Task.WaitAll(feedCrawlers.Select(async (fc) =>
             {
-                findings[fc.FeedName] = new HashSet<FeedWorker.SearchResult>(
-                    await fc.Search(packageName, versionSpec, includePreRelease: true));
+                // todo: use ConcurrentDictionary here
+                findings[fc.FeedName] = await fc.Search(packageName, versionSpec, includePreRelease: true);
             }).ToArray());
             foreach (var finding in findings)
             {
                 var feedName = finding.Key;
                 var packages = finding.Value;
                 var first = true;
-                foreach (var package in packages)
+                foreach (var package in packages.GroupBy(p => p.PackageData.Identity.Id))
                 {
-                    var versions = package.Worker.FindVersions(package.PackageData, versionSpec).Result;
-                    if (first) Console.WriteLine($"{Environment.NewLine}---= {package.Worker.FeedName} =-------------");
-                    if (!versions.Any()) Console.WriteLine($"{package.PackageData.Identity.Id} - package exists, but no matching version could be identified");
-                    else Console.WriteLine($"{package.PackageData.Identity.Id}:");
-                    versions.ToList().ForEach(vi => Console.WriteLine($"  {vi.Version.ToString()}"));
+                    if (first) Console.WriteLine($"{Environment.NewLine}---= {feedName} =-------------");
+                    // if (!package.Any()) Console.WriteLine($"{package.Key} - package exists, but no matching version could be identified");
+                    else Console.WriteLine($"{package.Key}:");
+                    package.ToList().ForEach(vi => Console.WriteLine($"  {vi.VersionInfo.Version.ToString()}"));
                     first = false;
                 }
             };

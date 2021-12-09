@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -27,7 +29,7 @@ namespace nugex.utils
             public FeedWorker Worker { get; set; }
         }
 
-        public async Task<HashSet<SearchResult>> Search(
+        public async Task<IEnumerable<SearchResult>> Search(
             string searchTerm,
             string versionSpec = null,
             bool includePreRelease = false)
@@ -40,26 +42,58 @@ namespace nugex.utils
                 new SearchFilter(includePrerelease: includePreRelease),
                 0, 999,
                 NullLogger.Instance, CancellationToken.None));
-            var versionInfos = new HashSet<SearchResult>();
+
+            var conDict = new ConcurrentDictionary<SearchResult, byte>();
+            var addVersions = new VersionCollectorFactory(versionSpec, this).Create();
             Task.WaitAll(packages.Select(async (pkgData) =>
             {
                 var allVersions = await pkgData.GetVersionsAsync();
-                versionInfos.Add(new SearchResult
-                {
-                    PackageData = pkgData,
-                    VersionInfo = allVersions.Last(),
-                    Worker = this
-                });
+                addVersions(allVersions, pkgData, conDict);
             }).ToArray());
-            return versionInfos;
+            return new HashSet<SearchResult>(conDict.Keys);
         }
 
-        public async Task<IEnumerable<VersionInfo>> FindVersions(IPackageSearchMetadata package, string versionSpec)
+        private class VersionCollectorFactory
         {
-            var versions = await package.GetVersionsAsync();
-            if (!versions.Any()) return new VersionInfo[0];
-            var result = versions.Where(v => Regex.IsMatch(v.Version.ToString(), versionSpec, RegexOptions.IgnoreCase));
-            return result;
+            private readonly string versionSpec;
+            private readonly FeedWorker worker;
+
+            public VersionCollectorFactory(string versionSpec, FeedWorker worker)
+            {
+                this.versionSpec = versionSpec;
+                this.worker = worker;
+            }
+
+            public Action<IEnumerable<VersionInfo>, IPackageSearchMetadata, ConcurrentDictionary<SearchResult, byte>> Create()
+            {
+                Action<IEnumerable<VersionInfo>, IPackageSearchMetadata, ConcurrentDictionary<SearchResult, byte>> TakeLast = (versions, metaData, versionInfos) =>
+                {
+                    var x = new SearchResult
+                    {
+                        PackageData = metaData,
+                        VersionInfo = versions.Last(),
+                        Worker = worker
+                    };
+                    versionInfos[x] = 1;
+                };
+                Action<IEnumerable<VersionInfo>, IPackageSearchMetadata, ConcurrentDictionary<SearchResult, byte>> FindMatching = (versions, metaData, versionInfos) =>
+                {
+                    versions
+                        .Where(v => Regex.IsMatch(v.Version.ToString(), versionSpec, RegexOptions.IgnoreCase))
+                        .ToList()
+                        .ForEach(v =>
+                        {
+                            var x = new SearchResult
+                            {
+                                PackageData = metaData,
+                                VersionInfo = v,
+                                Worker = worker
+                            };
+                            versionInfos[x] = 1;
+                        });
+                };
+                return string.IsNullOrWhiteSpace(versionSpec) ? TakeLast : FindMatching;
+            }
         }
 
     }
