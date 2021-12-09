@@ -34,7 +34,7 @@ namespace nugex.utils
         {
             public VersionInfo VersionInfo { get; set; }
             public IPackageSearchMetadata PackageData { get; set; }
-            public FeedWorker Worker { get; set; }
+            public FeedData Feed { get; set; }
         }
 
         public async Task<IEnumerable<SearchResult>> Search(
@@ -54,7 +54,7 @@ namespace nugex.utils
             packages = packages.Where(p => filter.IsMatch(p.Identity.Id));
 
             var conDict = new ConcurrentDictionary<SearchResult, byte>();
-            var addVersions = new VersionCollectorFactory(versionSpec, this).Create();
+            var addVersions = new VersionCollectorFactory(versionSpec, FeedData).Create();
             Task.WaitAll(packages.Select(async (pkgData) =>
             {
                 var allVersions = await pkgData.GetVersionsAsync();
@@ -66,12 +66,12 @@ namespace nugex.utils
         private class VersionCollectorFactory
         {
             private readonly string versionSpec;
-            private readonly FeedWorker worker;
+            private readonly FeedData feedData;
 
-            public VersionCollectorFactory(string versionSpec, FeedWorker worker)
+            public VersionCollectorFactory(string versionSpec, FeedData feedData)
             {
                 this.versionSpec = versionSpec;
-                this.worker = worker;
+                this.feedData = feedData;
             }
 
             public Action<IEnumerable<VersionInfo>, IPackageSearchMetadata, ConcurrentDictionary<SearchResult, byte>> Create()
@@ -82,7 +82,7 @@ namespace nugex.utils
                     {
                         PackageData = metaData,
                         VersionInfo = versions.Last(),
-                        Worker = worker
+                        Feed = feedData
                     };
                     versionInfos[x] = 1;
                 };
@@ -97,7 +97,7 @@ namespace nugex.utils
                             {
                                 PackageData = metaData,
                                 VersionInfo = v,
-                                Worker = worker
+                                Feed = feedData
                             };
                             versionInfos[x] = 1;
                         });
