@@ -8,7 +8,7 @@ namespace nugex
             CmdLine.Parser.InitCommands(new[]
             {
                 new Command("search", "search for package(s) on known feeds (from nuget.config)", () => Search(),
-                        new Parameter(_SEARCH_TERM_, "search term", mandatory: true),
+                        new Parameter(_SEARCH_TERM_, "search term (^ and $ can be used to make the phrase more specific)", mandatory: true),
                         new Parameter(_VSPEC_, "version number (regex)"),
                         new Switch(_ALL_FEEDS_, "...even those without matching packages")
                     ),

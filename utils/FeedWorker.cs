@@ -45,8 +45,10 @@ namespace nugex.utils
             SourceCacheContext cache = new SourceCacheContext();
             SourceRepository repository = Repository.Factory.GetCoreV3(FeedData.FeedUrl);
             var searcher = await repository.GetResourceAsync<PackageSearchResource>();
+            // remove regex characters which may be added to make the search more specific
+            var normalizedSearchTerm = new Regex(@"[\^\$]").Replace(searchTerm, "", 999);
             var packages = (await searcher.SearchAsync(
-                searchTerm,
+                normalizedSearchTerm,
                 new SearchFilter(includePrerelease: includePreRelease),
                 0, 999,
                 NullLogger.Instance, CancellationToken.None));
