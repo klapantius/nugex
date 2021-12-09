@@ -42,6 +42,8 @@ namespace nugex.utils
                 new SearchFilter(includePrerelease: includePreRelease),
                 0, 999,
                 NullLogger.Instance, CancellationToken.None));
+            var filter = new Regex(searchTerm, RegexOptions.IgnoreCase);
+            packages = packages.Where(p => filter.IsMatch(p.Identity.Id));
 
             var conDict = new ConcurrentDictionary<SearchResult, byte>();
             var addVersions = new VersionCollectorFactory(versionSpec, this).Create();
