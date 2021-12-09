@@ -11,15 +11,23 @@ using NuGet.Protocol.Core.Types;
 
 namespace nugex.utils
 {
+    class FeedData
+    {
+        public string FeedName { get; set; }
+        public string FeedUrl { get; set; }
+
+    }
+
     class FeedWorker
     {
-        public string FeedName { get; }
-        public string FeedUrl { get; }
-
+        public FeedData FeedData { get; }
         public FeedWorker(string feedName, string feedUrl)
         {
-            FeedName = feedName;
-            FeedUrl = feedUrl;
+            FeedData = new FeedData
+            {
+                FeedName = feedName,
+                FeedUrl = feedUrl
+            };
         }
 
         public class SearchResult
@@ -35,7 +43,7 @@ namespace nugex.utils
             bool includePreRelease = false)
         {
             SourceCacheContext cache = new SourceCacheContext();
-            SourceRepository repository = Repository.Factory.GetCoreV3(FeedUrl);
+            SourceRepository repository = Repository.Factory.GetCoreV3(FeedData.FeedUrl);
             var searcher = await repository.GetResourceAsync<PackageSearchResource>();
             var packages = (await searcher.SearchAsync(
                 searchTerm,

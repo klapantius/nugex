@@ -32,7 +32,7 @@ namespace nugex
             var findings = new ConcurrentDictionary<string, IEnumerable<FeedWorker.SearchResult>>();
             Task.WaitAll(feedCrawlers.Select(async (fc) =>
             {
-                findings[fc.FeedName] = await fc.Search(packageName, versionSpec, includePreRelease: true);
+                findings[fc.FeedData.FeedName] = await fc.Search(packageName, versionSpec, includePreRelease: true);
             }).ToArray());
             foreach (var finding in findings)
             {
