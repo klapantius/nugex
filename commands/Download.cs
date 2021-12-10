@@ -18,7 +18,10 @@ namespace nugex
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
             if (string.IsNullOrWhiteSpace(versionSpec)) throw new Exception($"please use the {_VSPEC_} parameter to specify the version");
             var targetDirectory = CmdLine.Parser.GetParam(_TARGET_PATH_);
-            if (string.IsNullOrWhiteSpace(targetDirectory)) targetDirectory = Environment.ExpandEnvironmentVariables($"%TEMP%\\{Guid.NewGuid()}");
+            if (string.IsNullOrWhiteSpace(targetDirectory)) {
+                targetDirectory = Environment.ExpandEnvironmentVariables($"%TEMP%\\{Guid.NewGuid()}");
+                Directory.CreateDirectory(targetDirectory);
+            }
 
             var filePath = DownloadAsync(packageName, versionSpec, targetDirectory).Result;
             System.Console.WriteLine($"download completed: {filePath}");
