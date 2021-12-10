@@ -19,7 +19,7 @@ namespace nugex
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
             var showAllFeeds = CmdLine.Parser.GetSwitch(_ALL_FEEDS_);
 
-            var findings = Search(searchTerm, versionSpec, showAllFeeds);
+            var findings = Search(searchTerm, versionSpec);
 
             var knownFeeds = new ConfigReader().ReadSources();
             foreach (var feed in knownFeeds)
@@ -36,7 +36,7 @@ namespace nugex
 
         }
 
-        private static List<FeedWorker.SearchResult> Search(string packageName, string versionSpec, bool showAllFeeds = false)
+        private static List<FeedWorker.SearchResult> Search(string packageName, string versionSpec)
         {
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
