@@ -20,16 +20,19 @@ namespace nugex
             var showAllFeeds = CmdLine.Parser.GetSwitch(_ALL_FEEDS_);
 
             var findings = Search(searchTerm, versionSpec);
+            var w = findings.Max(f => f.PackageData.Identity.Id.Length); // find out the max length from all package names
 
             var knownFeeds = new ConfigReader().ReadSources();
             foreach (var feed in knownFeeds)
             {
                 var feedName = feed.Item1;
                 var packages = findings.Where(f => f.Feed.FeedName == feedName);
-                if (packages.Any() || showAllFeeds) Console.WriteLine($"{Environment.NewLine}---= {feedName} =-------------");
+                if (packages.Any() || showAllFeeds) {
+                    Console.WriteLine($"{Environment.NewLine}{$"---= {feedName} =".PadRight(w + 15, '-')}");
+                }
                 foreach (var package in packages.GroupBy(p => p.PackageData.Identity.Id))
                 {
-                    Console.Write($"{package.Key}: ");
+                    Console.Write("{0,-" + w + "} :  ", package.Key);
                     Console.WriteLine($"[{string.Join(", ", package.ToList().Select(vi => vi.VersionInfo.Version.ToString()))}]");
                 }
             };
