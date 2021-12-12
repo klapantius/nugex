@@ -41,5 +41,12 @@ namespace nugex.utils
             }
             return result.ToList();
         }
+        public string GetUrlOfFeed(string feedName) {
+            var sources = ReadSources();
+            var entry = sources
+                .SingleOrDefault(s => s.Item1.Equals(feedName, StringComparison.InvariantCultureIgnoreCase));
+            if (entry == default) throw new Exception($"Could not find feed alias \"{feedName}\"");
+            return entry.Item2;
+        }
     }
 }
