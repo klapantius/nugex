@@ -12,19 +12,26 @@ namespace nugex
 {
     partial class Program
     {
-        private static void Download() {
+        private static void Download()
+        {
             var packageName = CmdLine.Parser.GetParam(_SEARCH_TERM_);
             if (string.IsNullOrWhiteSpace(packageName)) throw new Exception($"please use the {_SEARCH_TERM_} parameter to specify the package");
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
             if (string.IsNullOrWhiteSpace(versionSpec)) throw new Exception($"please use the {_VSPEC_} parameter to specify the version");
-            var targetDirectory = CmdLine.Parser.GetParam(_TARGET_PATH_);
-            if (string.IsNullOrWhiteSpace(targetDirectory)) {
-                targetDirectory = Environment.ExpandEnvironmentVariables($"%TEMP%\\{Guid.NewGuid()}");
-                Directory.CreateDirectory(targetDirectory);
-            }
+            var targetDirectory = EnsureDownloadFolder(CmdLine.Parser.GetParam(_TARGET_PATH_));
 
             var filePath = DownloadAsync(packageName, versionSpec, targetDirectory).Result;
             System.Console.WriteLine($"download completed: {filePath}");
+        }
+
+        private static string EnsureDownloadFolder(string targetDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(targetDirectory))
+            {
+                targetDirectory = Environment.ExpandEnvironmentVariables($"%TEMP%\\{Guid.NewGuid()}");
+                Directory.CreateDirectory(targetDirectory);
+            }
+            return targetDirectory;
         }
 
         private static async Task<string> DownloadAsync(string packageName, string version, string targetDirectory)
