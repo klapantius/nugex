@@ -1,4 +1,8 @@
 ﻿using nugex.cmdline;
+using System;
+using System.Diagnostics;
+using Switch = nugex.cmdline.Switch;
+
 namespace nugex
 {
     partial class Program
@@ -22,12 +26,22 @@ namespace nugex
                         new Parameter(_VSPEC_, "exact version number", mandatory: true),
                         new Parameter(_TARGET_FEED_, "the internal location for the package", mandatory: true),
                         new Parameter(_API_KEY_, "for the case the default value would not work")
-                    )
+                    ),
+                new Command("explore", "...the dependencies of a given package", () => Explore(),
+                        new Parameter(_SEARCH_TERM_, "package name", mandatory: true),
+                        new Parameter(_VSPEC_, "version number"),
+                        new Parameter(_FWSPEC_, ".net \"framework\""))
             });
 
             CmdLine.Parser.Parse(args);
 
             CmdLine.Parser.ExecuteCommand();
+
+            if (Debugger.IsAttached)
+            {
+                Console.WriteLine("press a key to terminate");
+                Console.ReadKey();
+            }
         }
 
         // option names in alphabetical order
@@ -37,6 +51,7 @@ namespace nugex
         public static readonly string _TARGET_FEED_ = "targetFeed";
         public static readonly string _TARGET_PATH_ = "targetDir";
         public static readonly string _VSPEC_ = "version";
+        public static readonly string _FWSPEC_ = "framework";
 
     }
 }
