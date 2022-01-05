@@ -6,7 +6,6 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using nugex.cmdline;
-using nugex.utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,7 +27,8 @@ namespace nugex
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
 
             // find package to identify the version we want to work with
-            var package = SearchOnNugetOrg($"^{packageName}$", versionSpec).Result;
+            var package = SearchOnNugetOrg(Exactly(packageName), versionSpec).Result
+                .Single();
 
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);
             if (string.IsNullOrWhiteSpace(fwSpec))
