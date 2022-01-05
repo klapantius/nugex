@@ -49,9 +49,10 @@ namespace nugex
 
             packages.ToList().ForEach(i => Console.WriteLine($"{i.Id} {i.Version}"));
 
+            Console.WriteLine("\ninternal package availablility");
             var internalResults = EvaluateInternalAvailability(packages).Result;
             var oriColor = Console.ForegroundColor;
-            internalResults.ForEach(p =>
+            internalResults.OrderBy(p => p.identity).ToList().ForEach(p =>
             {
                 Console.Write($"{p.identity} - ");
                 if (p.notFound)
@@ -113,7 +114,7 @@ namespace nugex
         {
             var tasks = packages.Select(async (p) =>
             {
-                var result = await SearchInternal(Exactly(p.Id), p.Version.ToString());
+                var result = await SearchInternal(Exactly(p.Id), Exactly(p.Version.ToString()), strict: false);
                 if (!result.Any()) result = await SearchInternal(Exactly(p.Id), null);
                 return new InternalResult
                 {

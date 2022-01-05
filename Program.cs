@@ -13,7 +13,7 @@ namespace nugex
             {
                 new Command("search", "search for package(s) on known feeds (from nuget.config)", () => Search(),
                         new Parameter(_SEARCH_TERM_, "search term (^ and $ can be used to make the phrase more specific)", mandatory: true),
-                        new Parameter(_VSPEC_, "version number (regex)"),
+                        new Parameter(_VSPEC_, "version number (common regex)"),
                         new Switch(_ALL_FEEDS_, "...even those without matching packages")
                     ),
                 new Command("download", "... a package from nuget.org", () => Download(),
@@ -27,7 +27,7 @@ namespace nugex
                         new Parameter(_TARGET_FEED_, "the internal location for the package", mandatory: true),
                         new Parameter(_API_KEY_, "for the case the default value would not work")
                     ),
-                new Command("explore", "...the dependencies of a given package", () => Explore(),
+                new Command("explore", "...the dependencies of a given package. Some dependencies may be listed with multiple versions. This can be handled differently by different resolve strategies.", () => Explore(),
                         new Parameter(_SEARCH_TERM_, "exact package id", mandatory: true),
                         new Parameter(_VSPEC_, "version number"),
                         new Parameter(_FWSPEC_, ".net \"framework\" like netcoreapp3.1 or net5"))

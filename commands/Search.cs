@@ -42,7 +42,11 @@ namespace nugex
 
         }
 
-        private static async Task<List<FeedWorker.SearchResult>> Search(string packageName, string versionSpec, IEnumerable<Tuple<string, string>> knownFeeds = null)
+        private static async Task<List<FeedWorker.SearchResult>> Search(
+            string packageName,
+            string versionSpec,
+            IEnumerable<Tuple<string, string>> knownFeeds = null,
+            bool strict = true)
         {
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
@@ -52,7 +56,7 @@ namespace nugex
             var findings = new ConcurrentBag<FeedWorker.SearchResult>();
             await Task.WhenAll(feedCrawlers.Select(async (fc) =>
             {
-                var feedResult = await fc.Search(packageName, versionSpec, includePreRelease: true);
+                var feedResult = await fc.Search(packageName, versionSpec, includePreRelease: true, strict);
                 feedResult.ToList().ForEach(r => findings.Add(r));
             }).ToArray());
             return findings.ToList();
@@ -64,11 +68,11 @@ namespace nugex
                     new Tuple<string, string>("nuget.org", NugetOrgFeedUri)
                 });
 
-        private static async Task<List<FeedWorker.SearchResult>> SearchInternal(string packageName, string versionSpec)
+        private static async Task<List<FeedWorker.SearchResult>> SearchInternal(string packageName, string versionSpec, bool strict = true)
         {
             var knownFeeds = new ConfigReader().ReadSources();
             var internalFeeds = knownFeeds.Where(f => !f.Item2.Equals(NugetOrgFeedUri, StringComparison.InvariantCultureIgnoreCase));
-            return await Search(packageName, versionSpec, internalFeeds);
+            return await Search(packageName, versionSpec, internalFeeds, strict);
         }
 
         private static string Exactly(string packageName) => $"^{packageName}$";
