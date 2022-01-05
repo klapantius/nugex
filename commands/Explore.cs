@@ -27,7 +27,8 @@ namespace nugex
             if (string.IsNullOrWhiteSpace(packageName)) throw new Exception($"please use the {_SEARCH_TERM_} parameter to specify the package");
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
 
-            var package = FindOnNugetOrg(packageName, versionSpec).Result;
+            // find package to identify the version we want to work with
+            var package = SearchOnNugetOrg($"^{packageName}$", versionSpec).Result;
 
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);
             if (string.IsNullOrWhiteSpace(fwSpec))
@@ -45,6 +46,11 @@ namespace nugex
             }
 
             packages.ToList().ForEach(i => Console.WriteLine($"{i.Id} {i.Version}"));
+
+            packages.ToList().ForEach(p =>
+            {
+
+            });
         }
 
         private static async Task GetPackageDependencies(PackageIdentity package,
@@ -91,13 +97,6 @@ namespace nugex
             var libs = packageReader.GetLibItems();
 
             return libs.Select(li => li.TargetFramework.GetShortFolderName()).ToList();
-        }
-
-        private static async Task<FeedWorker.SearchResult> FindOnNugetOrg(string packageName, string versionSpec)
-        {
-            var feed = new FeedWorker("nuget.org", "https://api.nuget.org/v3/index.json");
-            var packages = (await feed.Search($"^{packageName}$", versionSpec, includePreRelease: true)).ToList();
-            return packages.SingleOrDefault() ?? throw new Exception($"could not identify \"{packageName}\" \"{versionSpec}\". Use the 'search' command to find what you need.");
         }
 
     }

@@ -28,7 +28,7 @@ namespace nugex
                         new Parameter(_API_KEY_, "for the case the default value would not work")
                     ),
                 new Command("explore", "...the dependencies of a given package", () => Explore(),
-                        new Parameter(_SEARCH_TERM_, "package name", mandatory: true),
+                        new Parameter(_SEARCH_TERM_, "exact package id", mandatory: true),
                         new Parameter(_VSPEC_, "version number"),
                         new Parameter(_FWSPEC_, ".net \"framework\" like netcoreapp3.1 or net5"))
             });
