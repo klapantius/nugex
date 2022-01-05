@@ -6,6 +6,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using nugex.cmdline;
+using nugex.utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,22 +49,10 @@ namespace nugex
 
             packages.ToList().ForEach(i => Console.WriteLine($"{i.Id} {i.Version}"));
 
-            var tasks = packages.Select(async (p) =>
-            {
-                var result = await SearchInternal(p.Id, p.Version.ToString());
-                if (!result.Any()) result = await SearchInternal(p.Id, null);
-                return new {
-                    identity = $"{p.Id} {p.Version}",
-                    notFound = !result.Any(),
-                    exactlyMatching = result.Where(r => r.VersionInfo.Version == p.Version),
-                    rest = result.Where(r => r.VersionInfo.Version != p.Version)
-                };
-            }).ToArray();
-            Task.WaitAll(tasks);
+            var internalResults = EvaluateInternalAvailability(packages).Result;
             var oriColor = Console.ForegroundColor;
-            tasks.ToList().ForEach(t =>
+            internalResults.ForEach(p =>
             {
-                var p = t.Result;
                 Console.Write($"{p.identity} - ");
                 if (p.notFound)
                 {
@@ -111,6 +100,31 @@ namespace nugex
                     new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion),
                     framework, cacheContext, logger, availablePackages);
             }
+        }
+
+        internal class InternalResult {
+            public string identity;
+            public bool notFound;
+            public List<FeedWorker.SearchResult> exactlyMatching;
+            public List<FeedWorker.SearchResult> rest;
+        }
+
+        private static async Task<List<InternalResult>> EvaluateInternalAvailability(ISet<SourcePackageDependencyInfo> packages)
+        {
+            var tasks = packages.Select(async (p) =>
+            {
+                var result = await SearchInternal(Exactly(p.Id), p.Version.ToString());
+                if (!result.Any()) result = await SearchInternal(Exactly(p.Id), null);
+                return new InternalResult
+                {
+                    identity = $"{p.Id} {p.Version}",
+                    notFound = !result.Any(),
+                    exactlyMatching = result.Where(r => r.VersionInfo.Version == p.Version)?.ToList(),
+                    rest = result.Where(r => r.VersionInfo.Version != p.Version)?.ToList()
+                };
+            }).ToArray();
+            await Task.WhenAll(tasks);
+            return tasks.Select(t => t.Result).ToList();
         }
 
         private static async Task<IEnumerable<string>> GetSupportedFrameworks(string packageName, string versionSpec)
