@@ -68,11 +68,16 @@ namespace nugex
                     new Tuple<string, string>("nuget.org", NugetOrgFeedUri)
                 });
 
-        private static async Task<List<FeedWorker.SearchResult>> SearchInternal(string packageName, string versionSpec, bool strict = true)
+        public static List<Tuple<string, string>> InternalFeeds()
         {
             var knownFeeds = new ConfigReader().ReadSources();
-            var internalFeeds = knownFeeds.Where(f => !f.Item2.Equals(NugetOrgFeedUri, StringComparison.InvariantCultureIgnoreCase));
-            return await Search(packageName, versionSpec, internalFeeds, strict);
+            return knownFeeds
+                .Where(f => !f.Item2.Equals(NugetOrgFeedUri, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+        private static async Task<List<FeedWorker.SearchResult>> SearchInternal(string packageName, string versionSpec, bool strict = true)
+        {
+            return await Search(packageName, versionSpec, InternalFeeds(), strict);
         }
 
         private static string Exactly(string packageName) => $"^{packageName}$";

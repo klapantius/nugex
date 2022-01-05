@@ -30,7 +30,10 @@ namespace nugex
                 new Command("explore", "...the dependencies of a given package. Some dependencies may be listed with multiple versions. This can be handled differently by different resolve strategies.", () => Explore(),
                         new Parameter(_SEARCH_TERM_, "exact package id", mandatory: true),
                         new Parameter(_VSPEC_, "version number"),
-                        new Parameter(_FWSPEC_, ".net \"framework\" like netcoreapp3.1 or net5"))
+                        new Parameter(_FWSPEC_, ".net \"framework\" like netcoreapp3.1 or net5.0"),
+                        new Switch(_NO_EXACT_, "blend out feeds with exact matching"),
+                        new Switch(_NO_PARTIALS_, "blend out feeds where the package exists with different version"),
+                        new Switch(_NO_MISSINGS_, "blend out feeds where the package doesn't exist"))
             });
 
             CmdLine.Parser.Parse(args);
@@ -52,6 +55,9 @@ namespace nugex
         public static readonly string _TARGET_PATH_ = "targetDir";
         public static readonly string _VSPEC_ = "version";
         public static readonly string _FWSPEC_ = "framework";
+        public static readonly string _NO_EXACT_ = "no-exact";
+        public static readonly string _NO_PARTIALS_ = "no-partials";
+        public static readonly string _NO_MISSINGS_ = "no-missings";
 
     }
 }

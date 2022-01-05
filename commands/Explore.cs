@@ -27,11 +27,12 @@ namespace nugex
             if (string.IsNullOrWhiteSpace(packageName)) throw new Exception($"please use the {_SEARCH_TERM_} parameter to specify the package");
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
 
-            // find package to identify the version we want to work with
+            // resolve the versionSpec
             var package = SearchOnNugetOrg(Exactly(packageName), versionSpec).Result
                 .SingleOrDefault()
                 ?? throw new Exception($"could not identify \"{packageName}\" \"{versionSpec}\". Use the 'search' command to find what you need.");
 
+            // assumed it makes no difference for our purpose which framework we take
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);
             if (string.IsNullOrWhiteSpace(fwSpec))
             {
@@ -39,6 +40,7 @@ namespace nugex
                 fwSpec = supportedFrameworks.First();
             }
 
+            // collect all needed packages
             var packages = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
             using (var cacheContext = new SourceCacheContext())
             {
@@ -49,28 +51,38 @@ namespace nugex
 
             packages.ToList().ForEach(i => Console.WriteLine($"{i.Id} {i.Version}"));
 
+            // evaluate the internal availability of each package found
             Console.WriteLine("\ninternal package availablility");
             var internalResults = EvaluateInternalAvailability(packages).Result;
+            var noExactMatches = CmdLine.Parser.GetSwitch(_NO_EXACT_);
+            var noPartialMatches = CmdLine.Parser.GetSwitch(_NO_PARTIALS_);
+            var noMissings = CmdLine.Parser.GetSwitch(_NO_MISSINGS_);
             var oriColor = Console.ForegroundColor;
             internalResults.OrderBy(p => p.identity).ToList().ForEach(p =>
             {
                 Console.Write($"{p.identity} - ");
-                if (p.notFound)
+                if (p.NotFoundAtAll)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write($"couldn't be found internally");
                 }
                 else
                 {
-                    if (p.exactlyMatching.Any())
+                    if (!noExactMatches && p.exactlyMatching.Any())
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write($"found on {string.Join(", ", p.exactlyMatching.Select(x => x.Feed.FeedName))}. ");
+                        Console.Write($"Found on {string.Join(", ", p.exactlyMatching.Select(x => x.Feed.FeedName))}. ");
                     }
-                    if (p.rest.Any())
+                    if (!noPartialMatches && p.nameOnlyMatching.Any())
                     {
                         Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write(string.Join("; ", p.rest.Select(r => $"{r.VersionInfo.Version} on {r.Feed.FeedName}")));
+                        Console.Write(string.Join(", ", p.nameOnlyMatching.Select(r => $"{r.VersionInfo.Version} on {r.Feed.FeedName}")));
+                        Console.Write(". ");
+                    }
+                    if (!noMissings && p.notFound.Any())
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write($"Not found on {string.Join(", ", p.notFound)}. ");
                     }
                 }
                 Console.WriteLine();
@@ -78,7 +90,14 @@ namespace nugex
             });
         }
 
-        private static async Task GetPackageDependencies(PackageIdentity package,
+        /// <summary>
+        /// walks along the dependency tree of the specified package and returns the list of all needed packages
+        /// </summary>
+        /// <param name="package">the root of the dependency tree</param>
+        /// <param name="framework">the API needs this, use any framework supported by the package</param>
+        /// <param name="availablePackages">a container for the result</param>
+        /// <returns>nothing, but it populates the result into the object specified in the last parameter</returns>
+        public static async Task GetPackageDependencies(PackageIdentity package,
             NuGetFramework framework,
             SourceCacheContext cacheContext,
             ILogger logger,
@@ -103,26 +122,58 @@ namespace nugex
             }
         }
 
-        internal class InternalResult {
+        /// <summary>
+        /// internal availability record of a package
+        /// </summary>
+        internal class InternalResult
+        {
+            /// <summary>
+            /// package name and version
+            /// </summary>
             public string identity;
-            public bool notFound;
+            /// <summary>
+            /// findings which are completely satisfy the query
+            /// </summary>
             public List<FeedWorker.SearchResult> exactlyMatching;
-            public List<FeedWorker.SearchResult> rest;
+            /// <summary>
+            /// findings from feeds which don't host the asked version of the package, but some other one(s)
+            /// </summary>
+            public List<FeedWorker.SearchResult> nameOnlyMatching;
+            /// <summary>
+            /// feeds don't host the asked package at all
+            /// </summary>
+            public List<string> notFound;
+            /// <summary>
+            /// true if the asked package is not available internally
+            /// </summary>
+            public bool NotFoundAtAll => !exactlyMatching.Any() && !nameOnlyMatching.Any();
         }
 
-        private static async Task<List<InternalResult>> EvaluateInternalAvailability(ISet<SourcePackageDependencyInfo> packages)
+        /// <summary>
+        /// an optional step after <see cref="GetPackageDependencies"/> to check the internal availability of the resulted packages
+        /// </summary>
+        /// <param name="packages"></param>
+        /// <returns>a list of <see cref="InternalResult"/></returns>
+        public static async Task<List<InternalResult>> EvaluateInternalAvailability(ISet<SourcePackageDependencyInfo> packages)
         {
+            var internalFeeds = InternalFeeds().Select(f => f.Item1).ToList();
             var tasks = packages.Select(async (p) =>
             {
                 var result = await SearchInternal(Exactly(p.Id), Exactly(p.Version.ToString()), strict: false);
                 if (!result.Any()) result = await SearchInternal(Exactly(p.Id), null);
-                return new InternalResult
+                var finalResult = new InternalResult
                 {
                     identity = $"{p.Id} {p.Version}",
-                    notFound = !result.Any(),
                     exactlyMatching = result.Where(r => r.VersionInfo.Version == p.Version)?.ToList(),
-                    rest = result.Where(r => r.VersionInfo.Version != p.Version)?.ToList()
+                    nameOnlyMatching = result.Where(r => r.VersionInfo.Version != p.Version)?.ToList()
                 };
+                finalResult.notFound = internalFeeds
+                    .Except(
+                        finalResult.exactlyMatching.Select(r => r.Feed.FeedName)
+                            .Union(
+                        finalResult.nameOnlyMatching.Select(r => r.Feed.FeedName)))
+                    .ToList();
+                return finalResult;
             }).ToArray();
             await Task.WhenAll(tasks);
             return tasks.Select(t => t.Result).ToList();
