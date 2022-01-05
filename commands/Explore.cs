@@ -43,7 +43,7 @@ namespace nugex
             using (var cacheContext = new SourceCacheContext())
             {
                 GetPackageDependencies(
-                    package.PackageData.Identity,
+                    new PackageIdentity(package.PackageData.Identity.Id, package.VersionInfo.Version),
                     NuGetFramework.ParseFolder(fwSpec), cacheContext, NullLogger.Instance, packages).Wait();
             }
 
