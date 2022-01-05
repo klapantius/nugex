@@ -59,7 +59,7 @@ namespace nugex
         }
 
         private static async Task<List<FeedWorker.SearchResult>> SearchOnNugetOrg(string packageName, string versionSpec)
-            => await Search($"^{packageName}$", versionSpec, new[]
+            => await Search(packageName, versionSpec, new[]
                 {
                     new Tuple<string, string>("nuget.org", NugetOrgFeedUri)
                 });
