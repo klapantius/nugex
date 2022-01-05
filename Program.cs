@@ -30,7 +30,7 @@ namespace nugex
                 new Command("explore", "...the dependencies of a given package", () => Explore(),
                         new Parameter(_SEARCH_TERM_, "package name", mandatory: true),
                         new Parameter(_VSPEC_, "version number"),
-                        new Parameter(_FWSPEC_, ".net \"framework\""))
+                        new Parameter(_FWSPEC_, ".net \"framework\" like netcoreapp3.1 or net5"))
             });
 
             CmdLine.Parser.Parse(args);

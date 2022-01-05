@@ -96,7 +96,7 @@ namespace nugex
         private static async Task<FeedWorker.SearchResult> FindOnNugetOrg(string packageName, string versionSpec)
         {
             var feed = new FeedWorker("nuget.org", "https://api.nuget.org/v3/index.json");
-            var packages = (await feed.Search(packageName, versionSpec, includePreRelease: true)).ToList();
+            var packages = (await feed.Search($"^{packageName}$", versionSpec, includePreRelease: true)).ToList();
             return packages.SingleOrDefault() ?? throw new Exception($"could not identify \"{packageName}\" \"{versionSpec}\". Use the 'search' command to find what you need.");
         }
 
