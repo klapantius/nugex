@@ -28,7 +28,8 @@ namespace nugex
 
             // find package to identify the version we want to work with
             var package = SearchOnNugetOrg(Exactly(packageName), versionSpec).Result
-                .Single();
+                .SingleOrDefault()
+                ?? throw new Exception($"could not identify \"{packageName}\" \"{versionSpec}\". Use the 'search' command to find what you need.");
 
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);
             if (string.IsNullOrWhiteSpace(fwSpec))
@@ -47,9 +48,43 @@ namespace nugex
 
             packages.ToList().ForEach(i => Console.WriteLine($"{i.Id} {i.Version}"));
 
-            packages.ToList().ForEach(p =>
+            var tasks = packages.Select(async (p) =>
             {
-
+                var result = await SearchInternal(p.Id, p.Version.ToString());
+                if (!result.Any()) result = await SearchInternal(p.Id, null);
+                return new {
+                    identity = $"{p.Id} {p.Version}",
+                    notFound = !result.Any(),
+                    exactlyMatching = result.Where(r => r.VersionInfo.Version == p.Version),
+                    rest = result.Where(r => r.VersionInfo.Version != p.Version)
+                };
+            }).ToArray();
+            Task.WaitAll(tasks);
+            var oriColor = Console.ForegroundColor;
+            tasks.ToList().ForEach(t =>
+            {
+                var p = t.Result;
+                Console.Write($"{p.identity} - ");
+                if (p.notFound)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write($"couldn't be found internally");
+                }
+                else
+                {
+                    if (p.exactlyMatching.Any())
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write($"found on {string.Join(", ", p.exactlyMatching.Select(x => x.Feed.FeedName))}. ");
+                    }
+                    if (p.rest.Any())
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.Write(string.Join("; ", p.rest.Select(r => $"{r.VersionInfo.Version} on {r.Feed.FeedName}")));
+                    }
+                }
+                Console.WriteLine();
+                Console.ForegroundColor = oriColor;
             });
         }
 
