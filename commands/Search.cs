@@ -24,7 +24,7 @@ namespace nugex
             var findings = Search(searchTerm, versionSpec).Result;
             var w = findings.Max(f => f.PackageData.Identity.Id.Length); // find out the max length from all package names
 
-            var knownFeeds = new ConfigReader().ReadSources();
+            var knownFeeds = new ConfigReader().ReadSources(CmdLine.Parser.GetSwitch(_CONSIDER_DISABLED_FEEDS_));
             foreach (var feed in knownFeeds)
             {
                 var feedName = feed.Item1;
@@ -68,16 +68,16 @@ namespace nugex
                     new Tuple<string, string>("nuget.org", NugetOrgFeedUri)
                 });
 
-        public static List<Tuple<string, string>> InternalFeeds()
+        public static List<Tuple<string, string>> InternalFeeds(bool considerDisabledFeeds = true)
         {
-            var knownFeeds = new ConfigReader().ReadSources();
+            var knownFeeds = new ConfigReader().ReadSources(considerDisabledFeeds);
             return knownFeeds
                 .Where(f => !f.Item2.Equals(NugetOrgFeedUri, StringComparison.InvariantCultureIgnoreCase))
                 .ToList();
         }
-        private static async Task<List<FeedWorker.SearchResult>> SearchInternal(string packageName, string versionSpec, bool strict = true)
+        private static async Task<List<FeedWorker.SearchResult>> SearchInternal(string packageName, string versionSpec, bool strict = true, bool considerDisabledFeeds = true)
         {
-            return await Search(packageName, versionSpec, InternalFeeds(), strict);
+            return await Search(packageName, versionSpec, InternalFeeds(considerDisabledFeeds), strict);
         }
 
         private static string Exactly(string packageName) => $"^{packageName}$";

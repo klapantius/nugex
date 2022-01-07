@@ -27,13 +27,14 @@ namespace nugex
                         new Parameter(_TARGET_FEED_, "the internal location for the package", mandatory: true),
                         new Parameter(_API_KEY_, "for the case the default value would not work")
                     ),
-                new Command("explore", "...the dependencies of a given package. Some dependencies may be listed with multiple versions. This can be handled differently by different resolve strategies.", () => Explore(),
+                new Command("explore", "...the dependencies of a given package.", () => Explore(),
                         new Parameter(_SEARCH_TERM_, "exact package id", mandatory: true),
                         new Parameter(_VSPEC_, "version number"),
                         new Parameter(_FWSPEC_, ".net \"framework\" like netcoreapp3.1 or net5.0"),
                         new Switch(_NO_EXACT_, "blend out feeds with exact matching"),
                         new Switch(_NO_PARTIALS_, "blend out feeds where the package exists with different version"),
-                        new Switch(_NO_MISSINGS_, "blend out feeds where the package doesn't exist"))
+                        new Switch(_NO_MISSINGS_, "blend out feeds where the package doesn't exist"),
+                        new Switch(_CONSIDER_DISABLED_FEEDS_, "search also on internal feeds which are disabled in the configuration")),
             });
 
             CmdLine.Parser.Parse(args);
@@ -58,6 +59,7 @@ namespace nugex
         public static readonly string _NO_EXACT_ = "no-exact";
         public static readonly string _NO_PARTIALS_ = "no-partials";
         public static readonly string _NO_MISSINGS_ = "no-missings";
+        public static readonly string _CONSIDER_DISABLED_FEEDS_ = "consider-disabled-feeds";
 
     }
 }

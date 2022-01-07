@@ -53,7 +53,7 @@ namespace nugex
 
             // evaluate the internal availability of each package found
             Console.WriteLine("\ninternal package availablility");
-            var internalResults = EvaluateInternalAvailability(packages).Result;
+            var internalResults = EvaluateInternalAvailability(packages, CmdLine.Parser.GetSwitch(_CONSIDER_DISABLED_FEEDS_)).Result;
             var noExactMatches = CmdLine.Parser.GetSwitch(_NO_EXACT_);
             var noPartialMatches = CmdLine.Parser.GetSwitch(_NO_PARTIALS_);
             var noMissings = CmdLine.Parser.GetSwitch(_NO_MISSINGS_);
@@ -154,13 +154,13 @@ namespace nugex
         /// </summary>
         /// <param name="packages"></param>
         /// <returns>a list of <see cref="InternalResult"/></returns>
-        public static async Task<List<InternalResult>> EvaluateInternalAvailability(ISet<SourcePackageDependencyInfo> packages)
+        public static async Task<List<InternalResult>> EvaluateInternalAvailability(ISet<SourcePackageDependencyInfo> packages, bool considerDisabledFeeds)
         {
-            var internalFeeds = InternalFeeds().Select(f => f.Item1).ToList();
+            var internalFeeds = InternalFeeds(considerDisabledFeeds).Select(f => f.Item1).ToList();
             var tasks = packages.Select(async (p) =>
             {
-                var result = await SearchInternal(Exactly(p.Id), Exactly(p.Version.ToString()), strict: false);
-                if (!result.Any()) result = await SearchInternal(Exactly(p.Id), null);
+                var result = await SearchInternal(Exactly(p.Id), Exactly(p.Version.ToString()), strict: false, considerDisabledFeeds);
+                if (!result.Any()) result = await SearchInternal(Exactly(p.Id), null, considerDisabledFeeds);
                 var finalResult = new InternalResult
                 {
                     identity = $"{p.Id} {p.Version}",
