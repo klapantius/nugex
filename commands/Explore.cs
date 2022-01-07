@@ -185,7 +185,7 @@ namespace nugex
             var repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
             var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
 
-            using MemoryStream packageStream = new MemoryStream();
+            using MemoryStream packageStream = new();
             await resource.CopyNupkgToStreamAsync(
                 packageName,
                 new NuGetVersion(versionSpec),

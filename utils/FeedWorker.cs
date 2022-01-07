@@ -21,6 +21,7 @@ namespace nugex.utils
     class FeedWorker
     {
         public FeedData FeedData { get; }
+
         public FeedWorker(string feedName, string feedUrl)
         {
             FeedData = new FeedData
@@ -44,7 +45,7 @@ namespace nugex.utils
             bool strict = true)
         {
             //strict = !(!strict && versionSpec == null); // return latest only if allowed and a version specification passed
-            SourceCacheContext cache = new SourceCacheContext();
+            SourceCacheContext cache = new();
             SourceRepository repository = Repository.Factory.GetCoreV3(FeedData.FeedUrl);
             var searcher = await repository.GetResourceAsync<PackageSearchResource>();
             // remove regex characters which may be added to make the search more specific
@@ -110,7 +111,7 @@ namespace nugex.utils
                 }
                 void MatchingOrLatest(IEnumerable<VersionInfo> versions, IPackageSearchMetadata metaData, ConcurrentDictionary<SearchResult, byte> versionInfos)
                 {
-                    var oriCount = versionInfos.Count();
+                    var oriCount = versionInfos.Count;
                     // first try to match with the specified version if any
                     if (!string.IsNullOrWhiteSpace(versionSpec)) FindMatching(versions, metaData, versionInfos);
                     // if not found then take latest
