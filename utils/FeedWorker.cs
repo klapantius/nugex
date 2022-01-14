@@ -50,20 +50,6 @@ namespace nugex.utils
 
         }
 
-        /// <summary>
-        /// OBSOLETE - this ctor is going to be removed
-        /// </summary>
-        /// <param name="feedName"></param>
-        /// <param name="feedUrl"></param>
-        public FeedWorker(string feedName, string feedUrl)
-        {
-            FeedData = new FeedData
-            {
-                FeedName = feedName,
-                FeedUrl = feedUrl
-            };
-        }
-
         public class SearchResult
         {
             public VersionInfo VersionInfo { get; set; }
