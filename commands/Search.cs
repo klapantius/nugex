@@ -52,7 +52,8 @@ namespace nugex
             CancellationToken cancellationToken = CancellationToken.None;
 
             if (knownFeeds == null) knownFeeds = new ConfigReader().ReadSources();
-            var feedCrawlers = knownFeeds.Select(feed => new FeedWorker(feed.Item1, feed.Item2)).ToList();
+            var fwf = new FeedWorkerFactory();
+            var feedCrawlers = knownFeeds.Select(feed => fwf.Create(feed.Item1, feed.Item2)).ToList();
             var findings = new ConcurrentBag<FeedWorker.SearchResult>();
             await Task.WhenAll(feedCrawlers.Select(async (fc) =>
             {
