@@ -40,8 +40,11 @@ namespace nugex
         {
             var source = FeedSelector.Find();
             var pkgInfo = await Search(packageName, version);
-            if (!pkgInfo.Any(p => p.Feed.Url.Equals(source.Url))) {
-                throw new ErrorMessage($"{packageName} {version} is not available on {source.Name}");
+            if (!pkgInfo.Any(p => p.Feed.Url.Equals(source.Url)
+                && p.VersionInfo.Version == NuGetVersion.Parse(version)))
+            {
+                var similar = pkgInfo.FirstOrDefault(p => p.Feed.Url.Equals(source.Url));
+                throw new ErrorMessage($"{packageName} {version} is not available on {source.Name}{(similar!=default?" (but other versions)":"")}");
             }
 
             var cache = new SourceCacheContext();
