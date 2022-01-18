@@ -23,17 +23,17 @@ namespace nugex.utils
             => new()
             {
                 // pass FeedData by property injection
-                FeedData = new FeedData
+                Feed = new FeedData
                 {
-                    FeedName = feedName,
-                    FeedUrl = feedUrl
+                    Name = feedName,
+                    Url = feedUrl
                 }
             };
     }
 
     public class FeedWorker
     {
-        public FeedData FeedData { get; internal set; } = null;
+        public FeedData Feed { get; internal set; } = null;
 
         /// <summary>
         /// default costructor, port for DI containers (only)
@@ -56,10 +56,10 @@ namespace nugex.utils
             bool includePreRelease = false,
             bool strict = true)
         {
-            if (FeedData == null) throw new Exception("FeedWorker is not properly initialized, FeedData is missing");
+            if (Feed == null) throw new Exception("FeedWorker is not properly initialized, FeedData is missing");
             //strict = !(!strict && versionSpec == null); // return latest only if allowed and a version specification passed
             SourceCacheContext cache = new();
-            SourceRepository repository = Repository.Factory.GetCoreV3(FeedData.FeedUrl);
+            SourceRepository repository = Repository.Factory.GetCoreV3(Feed.Url);
             var searcher = await repository.GetResourceAsync<PackageSearchResource>();
             // remove regex characters which may be added to make the search more specific
             var normalizedSearchTerm = new Regex(@"[\^\$]").Replace(searchTerm, "");
@@ -72,7 +72,7 @@ namespace nugex.utils
             packages = packages.Where(p => filter.IsMatch(p.Identity.Id));
 
             var conDict = new ConcurrentDictionary<SearchResult, byte>();
-            var addVersions = new VersionCollectorFactory(versionSpec, FeedData, strict).Create();
+            var addVersions = new VersionCollectorFactory(versionSpec, Feed, strict).Create();
             Task.WaitAll(packages.Select(async (pkgData) =>
             {
                 var allVersions = await pkgData.GetVersionsAsync();

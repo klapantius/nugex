@@ -26,9 +26,9 @@ namespace nugex.utils
             {
                 name = DefaultFeedName;
             }
-            if (name.Equals(DefaultFeedName)) return new FeedData { FeedName = DefaultFeedName, FeedUrl = NugetOrgFeedUri };
+            if (name.Equals(DefaultFeedName)) return new FeedData { Name = DefaultFeedName, Url = NugetOrgFeedUri };
             var knownFeeds = new ConfigReader().ReadSources(disabledToo: true);
-            var result = knownFeeds.FirstOrDefault(f => f.FeedName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            var result = knownFeeds.FirstOrDefault(f => f.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
             if (result == default)
             {
                 throw new ArgumentException($"could not find a feed with name like '{name}'. Use the 'nuget sources' command to see the available ones.");

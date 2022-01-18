@@ -46,10 +46,10 @@ namespace nugex.utils
                     .Elements()
                     .Select(e => new FeedData
                     {
-                        FeedName = GetAttribute("key", e)?.Value,
-                        FeedUrl = GetAttribute("value", e)?.Value
+                        Name = GetAttribute("key", e)?.Value,
+                        Url = GetAttribute("value", e)?.Value
                     })
-                    .Where(e => e != null && !disabledSources.Contains(e.FeedName)));
+                    .Where(e => e != null && !disabledSources.Contains(e.Name)));
             }
             return result.ToList();
         }
@@ -57,9 +57,9 @@ namespace nugex.utils
         {
             var sources = ReadSources();
             var entry = sources
-                .SingleOrDefault(s => s.FeedName.Equals(feedName, StringComparison.InvariantCultureIgnoreCase));
+                .SingleOrDefault(s => s.Name.Equals(feedName, StringComparison.InvariantCultureIgnoreCase));
             if (entry == default) throw new Exception($"Could not find feed alias \"{feedName}\"");
-            return entry.FeedUrl;
+            return entry.Url;
         }
     }
 }

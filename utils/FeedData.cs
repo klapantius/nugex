@@ -2,8 +2,8 @@
 {
     public record FeedData
     {
-        public string FeedName { get; set; }
-        public string FeedUrl { get; set; }
+        public string Name { get; set; }
+        public string Url { get; set; }
 
     }
 }

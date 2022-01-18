@@ -39,7 +39,7 @@ namespace nugex
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);
             if (string.IsNullOrWhiteSpace(fwSpec))
             {
-                var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString(), sourceFeed.FeedName).Result;
+                var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString(), sourceFeed.Name).Result;
                 fwSpec = supportedFrameworks.First();
             }
 
@@ -50,7 +50,7 @@ namespace nugex
                 GetPackageDependencies(
                     new PackageIdentity(package.PackageData.Identity.Id, package.VersionInfo.Version),
                     NuGetFramework.ParseFolder(fwSpec),
-                    sourceFeed.FeedUrl,
+                    sourceFeed.Url,
                     cacheContext, NullLogger.Instance,
                     packages).Wait();
             }
@@ -77,12 +77,12 @@ namespace nugex
                     if (!noExactMatches && p.exactlyMatching.Any())
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write($"Found on {string.Join(", ", p.exactlyMatching.Select(x => x.Feed.FeedName))}. ");
+                        Console.Write($"Found on {string.Join(", ", p.exactlyMatching.Select(x => x.Feed.Name))}. ");
                     }
                     if (!noPartialMatches && p.nameOnlyMatching.Any())
                     {
                         Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write(string.Join(", ", p.nameOnlyMatching.Select(r => $"{r.VersionInfo.Version} on {r.Feed.FeedName}")));
+                        Console.Write(string.Join(", ", p.nameOnlyMatching.Select(r => $"{r.VersionInfo.Version} on {r.Feed.Name}")));
                         Console.Write(". ");
                     }
                     if (!noMissings && p.notFound.Any())
@@ -163,7 +163,7 @@ namespace nugex
         /// <returns>a list of <see cref="InternalResult"/></returns>
         public static async Task<List<InternalResult>> EvaluateInternalAvailability(ISet<SourcePackageDependencyInfo> packages, bool considerDisabledFeeds)
         {
-            var internalFeeds = InternalFeeds(considerDisabledFeeds).Select(f => f.FeedName).ToList();
+            var internalFeeds = InternalFeeds(considerDisabledFeeds).Select(f => f.Name).ToList();
             var tasks = packages.Select(async (p) =>
             {
                 var result = await SearchInternal(Exactly(p.Id), Exactly(p.Version.ToString()), strict: false, considerDisabledFeeds);
@@ -176,9 +176,9 @@ namespace nugex
                 };
                 finalResult.notFound = internalFeeds
                     .Except(
-                        finalResult.exactlyMatching.Select(r => r.Feed.FeedName)
+                        finalResult.exactlyMatching.Select(r => r.Feed.Name)
                             .Union(
-                        finalResult.nameOnlyMatching.Select(r => r.Feed.FeedName)))
+                        finalResult.nameOnlyMatching.Select(r => r.Feed.Name)))
                     .ToList();
                 return finalResult;
             }).ToArray();

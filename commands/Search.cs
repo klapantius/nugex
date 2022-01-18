@@ -25,8 +25,8 @@ namespace nugex
             var knownFeeds = new ConfigReader().ReadSources(CmdLine.Parser.GetSwitch(_CONSIDER_DISABLED_FEEDS_));
             foreach (var feed in knownFeeds)
             {
-                var feedName = feed.FeedName;
-                var packages = findings.Where(f => f.Feed.FeedName == feedName);
+                var feedName = feed.Name;
+                var packages = findings.Where(f => f.Feed.Name == feedName);
                 if (packages.Any() || showAllFeeds)
                 {
                     Console.WriteLine($"{Environment.NewLine}{$"---= {feedName} =".PadRight(w + 15, '-')}");
@@ -51,7 +51,7 @@ namespace nugex
 
             if (knownFeeds == null) knownFeeds = new ConfigReader().ReadSources();
             var fwf = new FeedWorkerFactory();
-            var feedCrawlers = knownFeeds.Select(feed => fwf.Create(feed.FeedName, feed.FeedUrl)).ToList();
+            var feedCrawlers = knownFeeds.Select(feed => fwf.Create(feed.Name, feed.Url)).ToList();
             var findings = new ConcurrentBag<FeedWorker.SearchResult>();
             await Task.WhenAll(feedCrawlers.Select(async (fc) =>
             {
@@ -65,7 +65,7 @@ namespace nugex
         {
             var knownFeeds = new ConfigReader().ReadSources(considerDisabledFeeds);
             return knownFeeds
-                .Where(f => !f.FeedUrl.Equals(FeedSelector.NugetOrgFeedUri, StringComparison.InvariantCultureIgnoreCase))
+                .Where(f => !f.Url.Equals(FeedSelector.NugetOrgFeedUri, StringComparison.InvariantCultureIgnoreCase))
                 .ToList();
         }
         private static async Task<List<FeedWorker.SearchResult>> SearchInternal(string packageName, string versionSpec, bool strict = true, bool considerDisabledFeeds = true)
