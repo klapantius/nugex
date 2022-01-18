@@ -7,7 +7,8 @@ namespace nugex.utils
 {
     class ConfigReader
     {
-        private readonly List<string> ConfigFiles = new() {
+        private readonly List<string> ConfigFiles = new()
+        {
             @"%appdata%\NuGet\NuGet.Config"
         };
 
@@ -17,9 +18,9 @@ namespace nugex.utils
                 .Where(a => a.Name.LocalName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
                 .SingleOrDefault();
         }
-        public List<Tuple<string, string>> ReadSources(bool disabledToo = false)
+        public List<FeedData> ReadSources(bool disabledToo = false)
         {
-            var result = new List<Tuple<string, string>>();
+            var result = new List<FeedData>();
             foreach (var cfgFile in ConfigFiles)
             {
                 var cfg = XDocument.Load(Environment.ExpandEnvironmentVariables(cfgFile));
@@ -43,10 +44,12 @@ namespace nugex.utils
                 if (disabledSources == null) disabledSources = new();
                 result.AddRange(packageSources
                     .Elements()
-                    .Select(e => new Tuple<string, string>(
-                        GetAttribute("key", e)?.Value,
-                        GetAttribute("value", e)?.Value))
-                    .Where(e => e != null && !disabledSources.Contains(e.Item1)));
+                    .Select(e => new FeedData
+                    {
+                        FeedName = GetAttribute("key", e)?.Value,
+                        FeedUrl = GetAttribute("value", e)?.Value
+                    })
+                    .Where(e => e != null && !disabledSources.Contains(e.FeedName)));
             }
             return result.ToList();
         }
@@ -54,9 +57,9 @@ namespace nugex.utils
         {
             var sources = ReadSources();
             var entry = sources
-                .SingleOrDefault(s => s.Item1.Equals(feedName, StringComparison.InvariantCultureIgnoreCase));
+                .SingleOrDefault(s => s.FeedName.Equals(feedName, StringComparison.InvariantCultureIgnoreCase));
             if (entry == default) throw new Exception($"Could not find feed alias \"{feedName}\"");
-            return entry.Item2;
+            return entry.FeedUrl;
         }
     }
 }

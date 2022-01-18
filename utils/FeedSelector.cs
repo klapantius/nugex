@@ -28,12 +28,12 @@ namespace nugex.utils
             }
             if (name.Equals(DefaultFeedName)) return new FeedData { FeedName = DefaultFeedName, FeedUrl = NugetOrgFeedUri };
             var knownFeeds = new ConfigReader().ReadSources(disabledToo: true);
-            var cfgFeed = knownFeeds.FirstOrDefault(f => f.Item1.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-            if (cfgFeed == default)
+            var result = knownFeeds.FirstOrDefault(f => f.FeedName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            if (result == default)
             {
                 throw new ArgumentException($"could not find a feed with name like '{name}'. Use the 'nuget sources' command to see the available ones.");
             }
-            return new FeedData { FeedName = cfgFeed.Item1, FeedUrl = cfgFeed.Item2 };
+            return result;
         }
     }
 }
