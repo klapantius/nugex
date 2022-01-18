@@ -12,7 +12,7 @@ namespace nugex
 {
     partial class Program
     {
-        internal static readonly string NugetOrgFeedUri = "https://api.nuget.org/v3/index.json";
+        internal static string NugetOrgFeedUri => "https://api.nuget.org/v3/index.json"; // todo: remove this
 
         private static void Search()
         {

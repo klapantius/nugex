@@ -31,13 +31,6 @@ namespace nugex.utils
             };
     }
 
-    public record FeedData
-    {
-        public string FeedName { get; set; }
-        public string FeedUrl { get; set; }
-
-    }
-
     public class FeedWorker
     {
         public FeedData FeedData { get; internal set; } = null;
