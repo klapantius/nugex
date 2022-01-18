@@ -30,7 +30,7 @@ namespace nugex
                 new Command("explore", "...the dependencies of a given package.", () => Explore(),
                         new Parameter(_SEARCH_TERM_, "exact package id", mandatory: true),
                         new Parameter(_VSPEC_, "version number"),
-                        new Parameter(_FWSPEC_, ".net \"framework\" like netcoreapp3.1 or net5.0"),
+                        new Parameter(_FWSPEC_, ".Net \"framework\" like netcoreapp3.1 or net5.0. If not specified one will be chosen automatically, which is supported by the asked package."),
                         new Switch(_NO_EXACT_, "blend out feeds with exact matching"),
                         new Switch(_NO_PARTIALS_, "blend out feeds where the package exists with different version"),
                         new Switch(_NO_MISSINGS_, "blend out feeds where the package doesn't exist"),
