@@ -54,11 +54,11 @@ namespace nugex.cmdline
         private void Help() {
             foreach (var cmd in Commands)
             {
-                Console.WriteLine($"{cmd.Key,-27}{cmd.Value.Description}");
+                Console.WriteLine($"{cmd.Key,-29}{cmd.Value.Description}");
                 foreach (var opt in cmd.Value.Options)
                 {
                     var mndStr = (opt is Parameter) && (opt as Parameter).IsMandatory? " - mandatory":"";
-                    Console.WriteLine($"  --{opt.Name,-23}{opt.Description}{mndStr}");
+                    Console.WriteLine($"  --{opt.Name,-25}{opt.Description}{mndStr}");
                 }
             }
         }

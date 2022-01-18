@@ -16,15 +16,16 @@ namespace nugex
                         new Parameter(_VSPEC_, "version number (common regex)"),
                         new Switch(_ALL_FEEDS_, "...even those without matching packages")
                     ),
-                new Command("download", "download a package (a .nupkg file) into a local folder", () => Download(),
+                new Command("download", "download a package (a .nupkg file) into a local folder.", () => Download(),
                         new Parameter(_SEARCH_TERM_, "exact package id", mandatory: true),
                         new Parameter(_VSPEC_, "exact version number", mandatory: true),
                         new Parameter(_SOURCE_FEED_, $"download from this feed, default: {utils.FeedSelector.DefaultFeedName}"),
-                        new Parameter(_TARGET_PATH_, "download folder for the package")
+                        new Parameter(_TARGET_PATH_, "target folder for the package")
                     ),
-                new Command("copy", "... a package from nuget.org", () => Copy(),
+                new Command("copy", "copies a package from nuget.org or internal feed to another one.", () => Copy(),
                         new Parameter(_SEARCH_TERM_, "exact package id", mandatory: true),
                         new Parameter(_VSPEC_, "exact version number", mandatory: true),
+                        new Parameter(_SOURCE_FEED_, $"search on this feed, default: {utils.FeedSelector.DefaultFeedName}. Enables copying from internal feeds."),
                         new Parameter(_TARGET_FEED_, "the internal location for the package", mandatory: true),
                         new Parameter(_API_KEY_, "for the case the default value would not work")
                     ),
