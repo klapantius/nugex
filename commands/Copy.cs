@@ -13,11 +13,11 @@ namespace nugex
         private static void Copy()
         {
             var packageName = CmdLine.Parser.GetParam(_SEARCH_TERM_);
-            if (string.IsNullOrWhiteSpace(packageName)) throw new Exception($"please use the {_SEARCH_TERM_} parameter to specify the package");
+            if (string.IsNullOrWhiteSpace(packageName)) throw new ErrorMessage($"please use the {_SEARCH_TERM_} parameter to specify the package");
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
-            if (string.IsNullOrWhiteSpace(versionSpec)) throw new Exception($"please use the {_VSPEC_} parameter to specify the version");
+            if (string.IsNullOrWhiteSpace(versionSpec)) throw new ErrorMessage($"please use the {_VSPEC_} parameter to specify the version");
             var targetFeed = CmdLine.Parser.GetParam(_TARGET_FEED_);
-            if (string.IsNullOrWhiteSpace(targetFeed)) throw new Exception($"please use the {_TARGET_FEED_} parameter to specify the target feed");
+            if (string.IsNullOrWhiteSpace(targetFeed)) throw new ErrorMessage($"please use the {_TARGET_FEED_} parameter to specify the target feed");
             var apiKey = CmdLine.Parser.GetParam(_API_KEY_);
 
             CopyAsync(packageName, versionSpec, targetFeed).Wait();

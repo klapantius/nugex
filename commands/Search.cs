@@ -15,7 +15,7 @@ namespace nugex
         private static void Search()
         {
             var searchTerm = CmdLine.Parser.GetParam(_SEARCH_TERM_);
-            if (string.IsNullOrWhiteSpace(searchTerm)) throw new Exception($"please use the --name parameter to specify a search term");
+            if (string.IsNullOrWhiteSpace(searchTerm)) throw new ErrorMessage($"please use the --name parameter to specify a search term");
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
             var showAllFeeds = CmdLine.Parser.GetSwitch(_ALL_FEEDS_);
 

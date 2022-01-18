@@ -24,7 +24,7 @@ namespace nugex
         private static void Explore()
         {
             var packageName = CmdLine.Parser.GetParam(_SEARCH_TERM_);
-            if (string.IsNullOrWhiteSpace(packageName)) throw new Exception($"please use the {_SEARCH_TERM_} parameter to specify the package");
+            if (string.IsNullOrWhiteSpace(packageName)) throw new ErrorMessage($"please use the {_SEARCH_TERM_} parameter to specify the package");
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
 
             // select the source feed
@@ -33,7 +33,7 @@ namespace nugex
             // resolve the versionSpec
             var package = Search(Exactly(packageName), versionSpec, new[] { sourceFeed }).Result
                 .SingleOrDefault()
-                ?? throw new Exception($"could not identify \"{packageName}\" \"{versionSpec}\". Use the 'search' command to find what you need.");
+                ?? throw new ErrorMessage($"could not identify \"{packageName}\" \"{versionSpec}\". Use the 'search' command to find what you need.");
 
             // assumed it makes no difference for our purpose which framework we take
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);

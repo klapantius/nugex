@@ -58,7 +58,7 @@ namespace nugex.utils
             var sources = ReadSources();
             var entry = sources
                 .SingleOrDefault(s => s.Name.Equals(feedName, StringComparison.InvariantCultureIgnoreCase));
-            if (entry == default) throw new Exception($"Could not find feed alias \"{feedName}\"");
+            if (entry == default) throw new ErrorMessage($"Could not find feed alias \"{feedName}\"");
             return entry.Url;
         }
     }

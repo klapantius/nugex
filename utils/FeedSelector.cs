@@ -31,7 +31,7 @@ namespace nugex.utils
             var result = knownFeeds.FirstOrDefault(f => f.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
             if (result == default)
             {
-                throw new ArgumentException($"could not find a feed with name like '{name}'. Use the 'nuget sources' command to see the available ones.");
+                throw new ErrorMessage($"could not find a feed with name like '{name}'. Use the 'nuget sources' command to see the available ones.");
             }
             return result;
         }

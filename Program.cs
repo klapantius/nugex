@@ -39,14 +39,26 @@ namespace nugex
                         new Switch(_CONSIDER_DISABLED_FEEDS_, "search also on internal feeds which are disabled in the configuration")),
             });
 
-            CmdLine.Parser.Parse(args);
-
-            CmdLine.Parser.ExecuteCommand();
-
-            if (Debugger.IsAttached)
+            try
             {
-                Console.WriteLine("press a key to terminate");
-                Console.ReadKey();
+                CmdLine.Parser.Parse(args);
+
+                CmdLine.Parser.ExecuteCommand();
+            }
+            catch (Exception exc)
+            {
+                var error = exc;
+                while (error.GetType() != typeof(ErrorMessage) && error.InnerException != null) error = error.InnerException;
+                if (error != null) Console.Error.WriteLine($"ERROR: {error.Message}");
+                else throw;
+            }
+            finally
+            {
+                if (Debugger.IsAttached)
+                {
+                    Console.WriteLine("press a key to terminate");
+                    Console.ReadKey();
+                }
             }
         }
 

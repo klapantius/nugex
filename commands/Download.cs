@@ -17,13 +17,13 @@ namespace nugex
         private static void Download()
         {
             var packageName = CmdLine.Parser.GetParam(_SEARCH_TERM_);
-            if (string.IsNullOrWhiteSpace(packageName)) throw new Exception($"please use the {_SEARCH_TERM_} parameter to specify the package");
+            if (string.IsNullOrWhiteSpace(packageName)) throw new ErrorMessage($"please use the {_SEARCH_TERM_} parameter to specify the package");
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
-            if (string.IsNullOrWhiteSpace(versionSpec)) throw new Exception($"please use the {_VSPEC_} parameter to specify the version");
+            if (string.IsNullOrWhiteSpace(versionSpec)) throw new ErrorMessage($"please use the {_VSPEC_} parameter to specify the version");
             var targetDirectory = EnsureDownloadFolder(CmdLine.Parser.GetParam(_TARGET_PATH_));
 
             var filePath = DownloadAsync(packageName, versionSpec, targetDirectory).Result;
-            System.Console.WriteLine($"download completed: {filePath}");
+            Console.WriteLine($"download completed: {filePath}");
         }
 
         private static string EnsureDownloadFolder(string targetDirectory)
@@ -41,7 +41,7 @@ namespace nugex
             var source = FeedSelector.Find();
             var pkgInfo = await Search(packageName, version);
             if (!pkgInfo.Any(p => p.Feed.Url.Equals(source.Url))) {
-                throw new Exception($"{packageName} {version} is not available on {source.Name}");
+                throw new ErrorMessage($"{packageName} {version} is not available on {source.Name}");
             }
 
             var cache = new SourceCacheContext();
