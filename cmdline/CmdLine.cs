@@ -30,6 +30,7 @@ namespace nugex.cmdline
 
         public void Parse(string[] args)
         {
+            if (!args.Any()) { Help(); throw new ErrorMessage("please specify one of the above commands"); }
             CommandRef = args[0].ToLowerInvariant();
             Args = new List<string>(args).Skip(1).ToList();
         }
@@ -71,6 +72,7 @@ namespace nugex.cmdline
 
         public void ExecuteCommand()
         {
+            if (!Commands.ContainsKey(CommandRef)) { Help(); throw new ErrorMessage($"'{CommandRef}' is not a supported command"); }
             var cmd = Commands[CommandRef];
             cmd.Execute();
         }
