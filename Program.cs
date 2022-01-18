@@ -27,7 +27,8 @@ namespace nugex
                         new Parameter(_TARGET_FEED_, "the internal location for the package", mandatory: true),
                         new Parameter(_API_KEY_, "for the case the default value would not work")
                     ),
-                new Command("explore", "...the dependencies of a given package.", () => Explore(),
+                new Command("explore", "...the dependencies of a given package. Internal exploration tells if (and how) we can satisfy a usage or an installation.", () => Explore(),
+                        new Parameter(_SOURCE_FEED_, "specifies where to start the search, thus it enables to explore internal only. Default: nuget.org.", mandatory: true),
                         new Parameter(_SEARCH_TERM_, "exact package id", mandatory: true),
                         new Parameter(_VSPEC_, "version number"),
                         new Parameter(_FWSPEC_, ".Net \"framework\" like netcoreapp3.1 or net5.0. If not specified one will be chosen automatically, which is supported by the asked package."),
@@ -52,6 +53,7 @@ namespace nugex
         public static readonly string _API_KEY_ = "apiKey";
         public static readonly string _SEARCH_TERM_ = "name";
         public static readonly string _ALL_FEEDS_ = "show-all-feeds";
+        public static readonly string _SOURCE_FEED_ = "source";
         public static readonly string _TARGET_FEED_ = "targetFeed";
         public static readonly string _TARGET_PATH_ = "targetDir";
         public static readonly string _VSPEC_ = "version";
