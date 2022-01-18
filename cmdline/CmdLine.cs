@@ -26,7 +26,7 @@ namespace nugex.cmdline
 
         private List<string> Args;
         private string CommandRef;
-        private Dictionary<string, Command> Commands = new Dictionary<string, Command>();
+        private readonly Dictionary<string, Command> Commands = new();
 
         public void Parse(string[] args)
         {

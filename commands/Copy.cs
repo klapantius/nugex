@@ -20,12 +20,13 @@ namespace nugex
             if (string.IsNullOrWhiteSpace(targetFeed)) throw new ErrorMessage($"please use the {_TARGET_FEED_} parameter to specify the target feed");
             var apiKey = CmdLine.Parser.GetParam(_API_KEY_);
 
-            CopyAsync(packageName, versionSpec, targetFeed).Wait();
+            CopyAsync(packageName, versionSpec, targetFeed, apiKey).Wait();
             System.Console.WriteLine($"transfer completed");
         }
         
         private static async Task CopyAsync(string packageName, string version, string targetFeed, string apiKey = "AzureDevOps")
         {
+            if (string.IsNullOrEmpty(apiKey)) apiKey = "AzureDevOps";
             var transferFolder = EnsureDownloadFolder(null);
             var package = await DownloadAsync(packageName, version, transferFolder);
 

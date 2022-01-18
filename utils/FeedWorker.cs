@@ -18,6 +18,9 @@ namespace nugex.utils
             /// take over all DI containers, these will be passed by ctor injection
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("*",
+            "CA1822:'Create' does not access instance data and can be marked as static",
+            Justification = "DI containers as internal members will follow.")]
         public FeedWorker Create(string feedName, string feedUrl)
             // pass DI containers by ctor injection
             => new()
