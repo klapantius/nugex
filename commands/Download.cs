@@ -7,6 +7,8 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using nugex.utils;
+using System.Linq;
 
 namespace nugex
 {
@@ -36,12 +38,18 @@ namespace nugex
 
         private static async Task<string> DownloadAsync(string packageName, string version, string targetDirectory)
         {
+            var source = FeedSelector.Find();
+            var pkgInfo = await Search(packageName, version);
+            if (!pkgInfo.Any(p => p.Feed.Url.Equals(source.Url))) {
+                throw new Exception($"{packageName} {version} is not available on {source.Name}");
+            }
+
             var cache = new SourceCacheContext();
-            var repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+            var repository = Repository.Factory.GetCoreV3(FeedSelector.Find().Url);
             var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
 
             var fullPath = Path.Join(targetDirectory, $"{packageName}.{version}.nupkg");
-            using FileStream fileStream = new FileStream(fullPath, FileMode.CreateNew);
+            using var fileStream = new FileStream(fullPath, FileMode.CreateNew);
             await resource.CopyNupkgToStreamAsync(
                 packageName,
                 new NuGetVersion(version),
