@@ -27,8 +27,11 @@ namespace nugex
             if (string.IsNullOrWhiteSpace(packageName)) throw new Exception($"please use the {_SEARCH_TERM_} parameter to specify the package");
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
 
+            // select the source feed
+            var sourceFeed = SelectSourceFeed(CmdLine.Parser.GetParam(_SOURCE_FEED_));
+
             // resolve the versionSpec
-            var package = SearchOnNugetOrg(Exactly(packageName), versionSpec).Result
+            var package = Search(Exactly(packageName), versionSpec, new[] { sourceFeed }).Result
                 .SingleOrDefault()
                 ?? throw new Exception($"could not identify \"{packageName}\" \"{versionSpec}\". Use the 'search' command to find what you need.");
 
@@ -36,7 +39,7 @@ namespace nugex
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);
             if (string.IsNullOrWhiteSpace(fwSpec))
             {
-                var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString()).Result;
+                var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString(), sourceFeed.Item2).Result;
                 fwSpec = supportedFrameworks.First();
             }
 
@@ -46,7 +49,10 @@ namespace nugex
             {
                 GetPackageDependencies(
                     new PackageIdentity(package.PackageData.Identity.Id, package.VersionInfo.Version),
-                    NuGetFramework.ParseFolder(fwSpec), cacheContext, NullLogger.Instance, packages).Wait();
+                    NuGetFramework.ParseFolder(fwSpec),
+                    sourceFeed.Item2,
+                    cacheContext, NullLogger.Instance,
+                    packages).Wait();
             }
 
             packages.ToList().ForEach(i => Console.WriteLine($"{i.Id} {i.Version}"));
@@ -90,6 +96,21 @@ namespace nugex
             });
         }
 
+        private static Tuple<string, string> SelectSourceFeed(string feedName = "nuget.org")
+        {
+            if (string.IsNullOrWhiteSpace(feedName) || feedName.Equals("nuget.org", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Tuple.Create("nuget.org", NugetOrgFeedUri);
+            }
+            var knownFeeds = new ConfigReader().ReadSources(disabledToo: true);
+            var result = knownFeeds.FirstOrDefault(f => f.Item1.Equals(feedName, StringComparison.InvariantCultureIgnoreCase));
+            if (result == default)
+            {
+                throw new ArgumentException($"could not find a feed with name like '{feedName}'. Use the 'nuget sources' command to see the available ones.");
+            }
+            return result;
+        }
+
         /// <summary>
         /// walks along the dependency tree of the specified package and returns the list of all needed packages
         /// </summary>
@@ -99,13 +120,14 @@ namespace nugex
         /// <returns>nothing, but it populates the result into the object specified in the last parameter</returns>
         public static async Task GetPackageDependencies(PackageIdentity package,
             NuGetFramework framework,
+            string sourceFeed,
             SourceCacheContext cacheContext,
             ILogger logger,
             ISet<SourcePackageDependencyInfo> availablePackages)
         {
             if (availablePackages.Contains(package)) return;
 
-            var sourceRepository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+            var sourceRepository = Repository.Factory.GetCoreV3(sourceFeed);
             var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>();
             var dependencyInfo = await dependencyInfoResource.ResolvePackage(
                 package, framework, cacheContext, logger, CancellationToken.None);
@@ -118,7 +140,7 @@ namespace nugex
             {
                 await GetPackageDependencies(
                     new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion),
-                    framework, cacheContext, logger, availablePackages);
+                    framework, sourceFeed, cacheContext, logger, availablePackages);
             }
         }
 
@@ -179,10 +201,10 @@ namespace nugex
             return tasks.Select(t => t.Result).ToList();
         }
 
-        private static async Task<IEnumerable<string>> GetSupportedFrameworks(string packageName, string versionSpec)
+        private static async Task<IEnumerable<string>> GetSupportedFrameworks(string packageName, string versionSpec, string sourceFeed)
         {
             var cache = new SourceCacheContext();
-            var repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+            var repository = Repository.Factory.GetCoreV3(sourceFeed);
             var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
 
             using MemoryStream packageStream = new();
