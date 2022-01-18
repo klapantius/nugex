@@ -47,8 +47,7 @@ namespace nugex
             }
             catch (Exception exc)
             {
-                var error = exc;
-                while (error.GetType() != typeof(ErrorMessage) && error.InnerException != null) error = error.InnerException;
+                var error = ExceptionProcessor.GetSupportedExcepton(exc);
                 if (error != null) Console.Error.WriteLine($"ERROR: {error.Message}");
                 else throw;
             }
