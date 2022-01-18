@@ -28,7 +28,7 @@ namespace nugex
             var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
 
             // select the source feed
-            var sourceFeed = SelectSourceFeed(CmdLine.Parser.GetParam(_SOURCE_FEED_));
+            var sourceFeed = FeedSelector.Find();
 
             // resolve the versionSpec
             var package = Search(Exactly(packageName), versionSpec, new[] { sourceFeed }).Result
@@ -39,7 +39,7 @@ namespace nugex
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);
             if (string.IsNullOrWhiteSpace(fwSpec))
             {
-                var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString(), sourceFeed.Item2).Result;
+                var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString(), sourceFeed.FeedName).Result;
                 fwSpec = supportedFrameworks.First();
             }
 
@@ -50,7 +50,7 @@ namespace nugex
                 GetPackageDependencies(
                     new PackageIdentity(package.PackageData.Identity.Id, package.VersionInfo.Version),
                     NuGetFramework.ParseFolder(fwSpec),
-                    sourceFeed.Item2,
+                    sourceFeed.FeedUrl,
                     cacheContext, NullLogger.Instance,
                     packages).Wait();
             }
@@ -94,21 +94,6 @@ namespace nugex
                 Console.WriteLine();
                 Console.ForegroundColor = oriColor;
             });
-        }
-
-        private static Tuple<string, string> SelectSourceFeed(string feedName = "nuget.org")
-        {
-            if (string.IsNullOrWhiteSpace(feedName) || feedName.Equals("nuget.org", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return Tuple.Create("nuget.org", NugetOrgFeedUri);
-            }
-            var knownFeeds = new ConfigReader().ReadSources(disabledToo: true);
-            var result = knownFeeds.FirstOrDefault(f => f.Item1.Equals(feedName, StringComparison.InvariantCultureIgnoreCase));
-            if (result == default)
-            {
-                throw new ArgumentException($"could not find a feed with name like '{feedName}'. Use the 'nuget sources' command to see the available ones.");
-            }
-            return result;
         }
 
         /// <summary>
@@ -178,7 +163,7 @@ namespace nugex
         /// <returns>a list of <see cref="InternalResult"/></returns>
         public static async Task<List<InternalResult>> EvaluateInternalAvailability(ISet<SourcePackageDependencyInfo> packages, bool considerDisabledFeeds)
         {
-            var internalFeeds = InternalFeeds(considerDisabledFeeds).Select(f => f.Item1).ToList();
+            var internalFeeds = InternalFeeds(considerDisabledFeeds).Select(f => f.FeedName).ToList();
             var tasks = packages.Select(async (p) =>
             {
                 var result = await SearchInternal(Exactly(p.Id), Exactly(p.Version.ToString()), strict: false, considerDisabledFeeds);

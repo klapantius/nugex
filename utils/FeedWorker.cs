@@ -11,24 +11,36 @@ using NuGet.Protocol.Core.Types;
 
 namespace nugex.utils
 {
-    class FeedData
+    class FeedWorkerFactory
     {
-        public string FeedName { get; set; }
-        public string FeedUrl { get; set; }
+        public FeedWorkerFactory()
+        {
+            /// take over all DI containers, these will be passed by ctor injection
+        }
 
+        public FeedWorker Create(string feedName, string feedUrl)
+            // pass DI containers by ctor injection
+            => new()
+            {
+                // pass FeedData by property injection
+                FeedData = new FeedData
+                {
+                    FeedName = feedName,
+                    FeedUrl = feedUrl
+                }
+            };
     }
 
-    class FeedWorker
+    public class FeedWorker
     {
-        public FeedData FeedData { get; }
+        public FeedData FeedData { get; internal set; } = null;
 
-        public FeedWorker(string feedName, string feedUrl)
+        /// <summary>
+        /// default costructor, port for DI containers (only)
+        /// </summary>
+        internal FeedWorker()
         {
-            FeedData = new FeedData
-            {
-                FeedName = feedName,
-                FeedUrl = feedUrl
-            };
+
         }
 
         public class SearchResult
@@ -44,6 +56,7 @@ namespace nugex.utils
             bool includePreRelease = false,
             bool strict = true)
         {
+            if (FeedData == null) throw new Exception("FeedWorker is not properly initialized, FeedData is missing");
             //strict = !(!strict && versionSpec == null); // return latest only if allowed and a version specification passed
             SourceCacheContext cache = new();
             SourceRepository repository = Repository.Factory.GetCoreV3(FeedData.FeedUrl);
