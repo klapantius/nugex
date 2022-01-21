@@ -39,7 +39,7 @@ namespace nugex
             var fwSpec = CmdLine.Parser.GetParam(_FWSPEC_);
             if (string.IsNullOrWhiteSpace(fwSpec))
             {
-                var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString(), sourceFeed.Name).Result;
+                var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString(), sourceFeed.Url).Result;
                 fwSpec = supportedFrameworks.First();
             }
 
