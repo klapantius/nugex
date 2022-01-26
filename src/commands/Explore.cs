@@ -211,8 +211,10 @@ namespace nugex
 
             using var packageReader = new PackageArchiveReader(packageStream);
             var libs = packageReader.GetLibItems();
+            var tools = packageReader.GetToolItems();
+            var items = libs.Union(tools);
 
-            return libs.Select(li => li.TargetFramework.GetShortFolderName()).ToList();
+            return items.Select(li => li.TargetFramework.GetShortFolderName()).Distinct().ToList();
         }
 
     }
