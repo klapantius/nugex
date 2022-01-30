@@ -27,7 +27,8 @@ namespace nugex.utils
                 name = DefaultFeedName;
             }
             if (name.Equals(DefaultFeedName)) return new FeedData { Name = DefaultFeedName, Url = NugetOrgFeedUri };
-            var knownFeeds = new ConfigReader().ReadSources(disabledToo: true);
+            var feedDataProvider = new FeedDataProviderFromNugetConfig();
+            var knownFeeds = feedDataProvider.GetSources(disabledToo: true).Result;
             var result = knownFeeds.FirstOrDefault(f => f.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
             if (result == default)
             {
