@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31829.152
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nugex", "src\nugex.csproj", "{6EF5ACA0-34F5-473D-B70E-3F35A7BADB13}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "test\test.csproj", "{1CEB09E6-F96D-4A63-A397-29E091A550CC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nugex.test", "test\nugex.test.csproj", "{1CEB09E6-F96D-4A63-A397-29E091A550CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
