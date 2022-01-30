@@ -34,14 +34,14 @@ namespace nugex.utils
             };
     }
 
-    public class FeedWorker
+    internal class FeedWorker
     {
         public FeedData Feed { get; internal set; } = null;
 
         /// <summary>
         /// default costructor, port for DI containers (only)
         /// </summary>
-        internal FeedWorker()
+        public FeedWorker()
         {
 
         }
