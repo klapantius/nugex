@@ -117,7 +117,15 @@ namespace nugex
             var dependencyInfo = await dependencyInfoResource.ResolvePackage(
                 package, framework, cacheContext, logger, CancellationToken.None);
 
-            if (dependencyInfo == null) return;
+            if (dependencyInfo == null)
+            {
+                var x = await Search($"^{package.Id}$", package.Version.ToString());
+                if (!x.Any()) return;
+                var altSourceRepository = Repository.Factory.GetCoreV3(x.First().Feed.Url);
+                var altDependencyInfoResource = await altSourceRepository.GetResourceAsync<DependencyInfoResource>();
+                dependencyInfo = await altDependencyInfoResource.ResolvePackage(
+                    package, framework, cacheContext, logger, CancellationToken.None);
+            }
 
             availablePackages.Add(dependencyInfo);
             // todo: use Tasks.WaitAll for faster progress
