@@ -41,6 +41,9 @@ namespace nugex
             {
                 var supportedFrameworks = GetSupportedFrameworks(packageName, package.VersionInfo.Version.ToString(), sourceFeed.Url).Result;
                 fwSpec = supportedFrameworks.First();
+                Console.WriteLine("No framework specified. Supported frameworks: [{0}] Continue to work with {1}",
+                    string.Join(", ", supportedFrameworks.Select(f => $"\"{f}\"")),
+                    fwSpec);
             }
 
             // collect all needed packages
