@@ -16,7 +16,11 @@ namespace nugex
         {
             var searchTerm = CmdLine.Parser.GetParam(_SEARCH_TERM_);
             if (string.IsNullOrWhiteSpace(searchTerm)) throw new ErrorMessage($"please use the --name parameter to specify a search term");
-            var versionSpec = CmdLine.Parser.GetParam(_VSPEC_);
+            var versionSpec = CmdLine.Parser.GetParam(_VPATTERN_);
+            if (versionSpec == default)
+            {
+                versionSpec = @$"^{CmdLine.Parser.GetParam(_VSPEC_) ?? ".*"}$";
+            }
             var showAllFeeds = CmdLine.Parser.GetSwitch(_ALL_FEEDS_);
 
             var findings = Search(searchTerm, versionSpec).Result;

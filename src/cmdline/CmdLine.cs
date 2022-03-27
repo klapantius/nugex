@@ -6,6 +6,11 @@ namespace nugex.cmdline
 {
     public interface ICmdLine
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>value of parameter or 'default'</returns>
         string GetParam(string name);
         bool GetSwitch(string name);
         void InitCommands(IEnumerable<Command> commands);

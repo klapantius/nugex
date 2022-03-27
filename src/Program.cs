@@ -13,7 +13,8 @@ namespace nugex
             {
                 new Command("search", "search for package(s) on known feeds (from nuget.config)", () => Search(),
                         new Parameter(_SEARCH_TERM_, "search term (^ and $ can be used to make the phrase more specific)", mandatory: true),
-                        new Parameter(_VSPEC_, "version number (common regex)"),
+                        new Parameter(_VPATTERN_, "version number pattern (common regex)"),
+                        new Parameter(_VSPEC_, "exact version number"),
                         new Switch(_ALL_FEEDS_, "...even those without matching packages")
                     ),
                 new Command("download", "download a package (a .nupkg file) into a local folder.", () => Download(),
@@ -69,6 +70,7 @@ namespace nugex
         public static readonly string _SOURCE_FEED_ = "source";
         public static readonly string _TARGET_FEED_ = "targetFeed";
         public static readonly string _TARGET_PATH_ = "targetDir";
+        public static readonly string _VPATTERN_ = "version-pattern";
         public static readonly string _VSPEC_ = "version";
         public static readonly string _FWSPEC_ = "framework";
         public static readonly string _NO_EXACT_ = "no-exact";
