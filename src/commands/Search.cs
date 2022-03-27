@@ -12,7 +12,7 @@ namespace nugex
 {
     partial class Program
     {
-        private static void Search()
+        internal static void Search()
         {
             var searchTerm = CmdLine.Parser.GetParam(_SEARCH_TERM_);
             if (string.IsNullOrWhiteSpace(searchTerm)) throw new ErrorMessage($"please use the --name parameter to specify a search term");
@@ -23,7 +23,8 @@ namespace nugex
             }
             var showAllFeeds = CmdLine.Parser.GetSwitch(_ALL_FEEDS_);
 
-            var findings = Search(searchTerm, versionSpec).Result;
+            var searcher = SearcherFactory.Create();
+            var findings = searcher.RunAsync(searchTerm, versionSpec).Result;
             // todo: stop if no findings available
             var w = findings.Max(f => f.PackageData.Identity.Id.Length); // find out the max length from all package names
 
@@ -42,7 +43,6 @@ namespace nugex
                     Console.WriteLine($"[{string.Join(", ", package.ToList().Select(vi => vi.VersionInfo.Version.ToString()))}]");
                 }
             };
-
         }
 
         private static async Task<List<FeedWorker.SearchResult>> Search(
@@ -76,7 +76,8 @@ namespace nugex
         }
         private static async Task<List<FeedWorker.SearchResult>> SearchInternal(string packageName, string versionSpec, bool strict = true, bool considerDisabledFeeds = true)
         {
-            return await Search(packageName, versionSpec, InternalFeeds(considerDisabledFeeds), strict);
+            var searcher = SearcherFactory.Create();
+            return await searcher.RunAsync(packageName, versionSpec, InternalFeeds(considerDisabledFeeds), strict);
         }
 
         private static string Exactly(string packageName) => $"^{packageName}$";

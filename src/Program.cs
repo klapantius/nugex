@@ -7,8 +7,7 @@ namespace nugex
 {
     partial class Program
     {
-        static void Main(string[] args)
-        {
+        public static void InitCommands() { 
             CmdLine.Parser.InitCommands(new[]
             {
                 new Command("search", "search for package(s) on known feeds (from nuget.config)", () => Search(),
@@ -40,6 +39,11 @@ namespace nugex
                         new Switch(_NO_MISSINGS_, "blend out feeds where the package doesn't exist"),
                         new Switch(_CONSIDER_DISABLED_FEEDS_, "search also on internal feeds which are disabled in the configuration")),
             });
+        }
+
+        static void Main(string[] args)
+        {
+            InitCommands();
 
             try
             {

@@ -31,7 +31,8 @@ namespace nugex
             var sourceFeed = FeedSelector.Find();
 
             // resolve the versionSpec
-            var package = Search(Exactly(packageName), versionSpec, new[] { sourceFeed }).Result
+            var searcher = SearcherFactory.Create();
+            var package = searcher.RunAsync(Exactly(packageName), versionSpec, new[] { sourceFeed }).Result
                 .SingleOrDefault()
                 ?? throw new ErrorMessage($"could not identify \"{packageName}\" \"{versionSpec}\". Use the 'search' command to find what you need.");
 
@@ -122,7 +123,8 @@ namespace nugex
 
             if (dependencyInfo == null)
             {
-                var x = await Search($"^{package.Id}$", package.Version.ToString());
+                var searcher = SearcherFactory.Create();
+                var x = await searcher.RunAsync($"^{package.Id}$", package.Version.ToString());
                 if (!x.Any()) return;
                 var altSourceRepository = Repository.Factory.GetCoreV3(x.First().Feed.Url);
                 var altDependencyInfoResource = await altSourceRepository.GetResourceAsync<DependencyInfoResource>();

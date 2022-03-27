@@ -34,7 +34,7 @@ namespace nugex.utils
             };
     }
 
-    internal class FeedWorker
+    public class FeedWorker
     {
         public FeedData Feed { get; internal set; } = null;
 

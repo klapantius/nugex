@@ -39,7 +39,8 @@ namespace nugex
         private static async Task<string> DownloadAsync(string packageName, string version, string targetDirectory)
         {
             var source = FeedSelector.Find();
-            var pkgInfo = await Search(packageName, version);
+            var searcher = SearcherFactory.Create();
+            var pkgInfo = await searcher.RunAsync(packageName, version);
             if (!pkgInfo.Any(p => p.Feed.Url.Equals(source.Url)
                 && p.VersionInfo.Version == NuGetVersion.Parse(version)))
             {

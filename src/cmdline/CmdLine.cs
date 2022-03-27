@@ -14,7 +14,7 @@ namespace nugex.cmdline
         string GetParam(string name);
         bool GetSwitch(string name);
         void InitCommands(IEnumerable<Command> commands);
-        void Parse(string[] args);
+        void Parse(params string[] args);
         void ExecuteCommand();
     }
 
@@ -33,7 +33,7 @@ namespace nugex.cmdline
         private string CommandRef;
         private readonly Dictionary<string, Command> Commands = new();
 
-        public void Parse(string[] args)
+        public void Parse(params string[] args)
         {
             if (!args.Any()) { Help(); throw new ErrorMessage("please specify one of the above commands"); }
             CommandRef = args[0].ToLowerInvariant();
