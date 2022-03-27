@@ -20,6 +20,7 @@ namespace nugex
             var showAllFeeds = CmdLine.Parser.GetSwitch(_ALL_FEEDS_);
 
             var findings = Search(searchTerm, versionSpec).Result;
+            // todo: stop if no findings available
             var w = findings.Max(f => f.PackageData.Identity.Id.Length); // find out the max length from all package names
 
             var knownFeeds = new ConfigReader().ReadSources(CmdLine.Parser.GetSwitch(_CONSIDER_DISABLED_FEEDS_));
@@ -49,7 +50,8 @@ namespace nugex
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
 
-            if (knownFeeds == null) knownFeeds = new ConfigReader().ReadSources();
+            //if (knownFeeds == null) knownFeeds = new ConfigReader().ReadSources();
+            if (knownFeeds == null) knownFeeds = await Task.Run(() => new FeedDataProviderFromNugetConfig().GetSources(true));
             var fwf = new FeedWorkerFactory();
             var feedCrawlers = knownFeeds.Select(feed => fwf.Create(feed.Name, feed.Url)).ToList();
             var findings = new ConcurrentBag<FeedWorker.SearchResult>();
