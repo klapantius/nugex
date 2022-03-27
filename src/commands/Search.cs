@@ -25,7 +25,11 @@ namespace nugex
 
             var searcher = SearcherFactory.Create();
             var findings = searcher.RunAsync(searchTerm, versionSpec).Result;
-            // todo: stop if no findings available
+            if (!findings.Any())
+            {
+                Console.WriteLine("Could not find any package according to these parameters.");
+                return;
+            }
             var w = findings.Max(f => f.PackageData.Identity.Id.Length); // find out the max length from all package names
 
             var knownFeeds = new ConfigReader().ReadSources(CmdLine.Parser.GetSwitch(_CONSIDER_DISABLED_FEEDS_));
