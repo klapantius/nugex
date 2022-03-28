@@ -7,6 +7,7 @@ using NuGet.Common;
 using nugex.cmdline;
 using nugex.utils;
 using System.Collections.Concurrent;
+using NuGet.Versioning;
 
 namespace nugex
 {
@@ -32,6 +33,7 @@ namespace nugex
             }
             var w = findings.Max(f => f.PackageData.Identity.Id.Length); // find out the max length from all package names
 
+            var anyVersionSpecified = CmdLine.Parser.GetParam(_VPATTERN_) != default || CmdLine.Parser.GetParam(_VSPEC_) != null;
             // todo: replace ConfigReader
             var knownFeeds = new ConfigReader().ReadSources(CmdLine.Parser.GetSwitch(_CONSIDER_DISABLED_FEEDS_));
             foreach (var feed in knownFeeds)
@@ -49,14 +51,20 @@ namespace nugex
                         .OrderByDescending(pv => pv.VersionInfo.Version)
                         .Select(vi => vi.VersionInfo.Version)
                         .ToList();
-                    Console.Write("[");
-                    for (int i = 0; i < versionsFound.Count; i++)
+                    var versionsToPrint = anyVersionSpecified ? versionsFound : new List<NuGetVersion>() { versionsFound.First() };
+                    if (!anyVersionSpecified && versionsFound.First().IsPrerelease)
                     {
+                        versionsToPrint.AddRange(versionsFound.SkipWhile(v => v.IsPrerelease).Take(1));
+                    }
+                    Console.Write("[");
+                    for (int i = 0; i < versionsToPrint.Count; i++)
+                    {
+                        var version = versionsToPrint[i];
                         var oriColor = Console.ForegroundColor;
-                        Console.ForegroundColor = versionsFound[i].IsPrerelease ? ConsoleColor.Gray : ConsoleColor.Yellow;
-                        Console.Write(versionsFound[i]);
+                        Console.ForegroundColor = version.IsPrerelease ? ConsoleColor.Gray : ConsoleColor.Yellow;
+                        Console.Write(version);
                         Console.ForegroundColor = oriColor;
-                        if (i < versionsFound.Count - 1) Console.Write(", ");
+                        if (i < versionsToPrint.Count - 1) Console.Write(", ");
                     }
                     Console.WriteLine("]");
                 }
