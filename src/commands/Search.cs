@@ -32,19 +32,20 @@ namespace nugex
             }
             var w = findings.Max(f => f.PackageData.Identity.Id.Length); // find out the max length from all package names
 
+            // todo: replace ConfigReader
             var knownFeeds = new ConfigReader().ReadSources(CmdLine.Parser.GetSwitch(_CONSIDER_DISABLED_FEEDS_));
             foreach (var feed in knownFeeds)
             {
                 var feedName = feed.Name;
-                var packages = findings.Where(f => f.Feed.Name == feedName);
-                if (packages.Any() || showAllFeeds)
+                var packagesFromFeed = findings.Where(f => f.Feed.Name == feedName);
+                if (packagesFromFeed.Any() || showAllFeeds)
                 {
                     Console.WriteLine($"{Environment.NewLine}{$"---= {feedName} =".PadRight(w + 15, '-')}");
                 }
-                foreach (var package in packages.GroupBy(p => p.PackageData.Identity.Id))
+                foreach (var package in packagesFromFeed.GroupBy(p => p.PackageData.Identity.Id))
                 {
                     Console.Write("{0,-" + w + "} :  ", package.Key);
-                    Console.WriteLine($"[{string.Join(", ", package.ToList().Select(vi => vi.VersionInfo.Version.ToString()))}]");
+                    Console.WriteLine($"[{string.Join(", ", package.OrderByDescending(pv => pv.VersionInfo.Version).ToList().Select(vi => vi.VersionInfo.Version.ToString()))}]");
                 }
             };
         }
