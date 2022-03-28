@@ -45,7 +45,20 @@ namespace nugex
                 foreach (var package in packagesFromFeed.GroupBy(p => p.PackageData.Identity.Id))
                 {
                     Console.Write("{0,-" + w + "} :  ", package.Key);
-                    Console.WriteLine($"[{string.Join(", ", package.OrderByDescending(pv => pv.VersionInfo.Version).ToList().Select(vi => vi.VersionInfo.Version.ToString()))}]");
+                    var versionsFound = package
+                        .OrderByDescending(pv => pv.VersionInfo.Version)
+                        .Select(vi => vi.VersionInfo.Version)
+                        .ToList();
+                    Console.Write("[");
+                    for (int i = 0; i < versionsFound.Count; i++)
+                    {
+                        var oriColor = Console.ForegroundColor;
+                        Console.ForegroundColor = versionsFound[i].IsPrerelease ? ConsoleColor.Gray : ConsoleColor.Yellow;
+                        Console.Write(versionsFound[i]);
+                        Console.ForegroundColor = oriColor;
+                        if (i < versionsFound.Count - 1) Console.Write(", ");
+                    }
+                    Console.WriteLine("]");
                 }
             };
         }
