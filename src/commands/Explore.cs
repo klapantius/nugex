@@ -59,10 +59,17 @@ namespace nugex
                     packages).Wait();
             }
 
-            packages.ToList().ForEach(i => Console.WriteLine($"{i.Id} {i.Version}"));
+            if (packages.Count == 1)
+            {
+                Console.WriteLine("\nHmm, this package either seems to be self-contained or it simply has no dependencies.\n");
+            }
+            else
+            {
+                Console.WriteLine($"Identified {packages.Count} package(s). Exploring internal availability of them...\n");
+                Console.WriteLine("Internal package availablility");
+            }
 
             // evaluate the internal availability of each package found
-            Console.WriteLine("\ninternal package availablility");
             var internalResults = EvaluateInternalAvailability(packages, CmdLine.Parser.GetSwitch(_CONSIDER_DISABLED_FEEDS_)).Result;
             var noExactMatches = CmdLine.Parser.GetSwitch(_NO_EXACT_);
             var noPartialMatches = CmdLine.Parser.GetSwitch(_NO_PARTIALS_);
